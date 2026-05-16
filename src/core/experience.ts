@@ -16,6 +16,8 @@ import { LightShafts } from "../graphics/light-shaft";
 import { BackgroundPlane } from "../graphics/background-plane";
 import { Beam } from "../graphics/beam";
 import { Gui } from "./gui";
+import { CursorLight } from "../graphics/cursor-light";
+import { createEnvironmentMap } from "../graphics/createEnviormentMap";
 
 export class Experience {
   scene: THREE.Scene;
@@ -24,7 +26,7 @@ export class Experience {
   camera: CameraManager;
   beams: Beam;
   renderer: RendererManager;
-
+  cursorLight: CursorLight;
   cubes: CubeField;
 
   lighting: LightingSystem;
@@ -48,6 +50,7 @@ export class Experience {
     this.scene.add(this.camera.group);
 
     this.renderer = new RendererManager(this.scene, this.camera.camera);
+    this.scene.environment = createEnvironmentMap(this.renderer.renderer);
     this.mouse = new Mouse();
 
     this.scroll = new ScrollController();
@@ -56,8 +59,9 @@ export class Experience {
       this.gui = new Gui();
     }
 
-    this.lighting = new LightingSystem(this.scene, this.gui);
     this.bg = new BackgroundPlane(this.scene, this.gui);
+    this.lighting = new LightingSystem(this.scene, this.gui);
+    this.cursorLight = new CursorLight(this.scene, this.gui);
     this.cubes = new CubeField(this.scene, this.gui);
     this.shafts = new LightShafts(this.scene, 12, this.gui);
     this.beams = new Beam(this.scene, 12, this.gui);
@@ -94,6 +98,16 @@ export class Experience {
       this.scroll.velocity,
       this.cubes.worldHeight,
     );
+
+    const vector = new THREE.Vector3(
+      this.mouse.normalized.x * 15,
+      this.mouse.normalized.y * 20,
+      -15,
+    );
+
+    // vector.unproject(this.camera.camera);
+    vector.setX(this.mouse.normalized.x * 15);
+    this.cursorLight.update(vector, elapsed);
 
     // LIGHTING
     this.lighting.update(elapsed);

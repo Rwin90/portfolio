@@ -13,15 +13,15 @@ export class Beam {
   constructor(scene: THREE.Scene, count: number = 55, gui?: Gui) {
     this.count = count;
 
-    const geometry = new THREE.PlaneGeometry(2.5, Math.random() * 35, 8, 16);
+    const geometry = new THREE.PlaneGeometry(0.2, Math.random() * 95, 32, 32);
 
     const offsets = new Float32Array(this.count * 3);
 
     for (let i = 0; i < this.count; i++) {
       const i3 = i * 3;
 
-      offsets[i3 + 0] = (Math.random() - 0.5) * 60;
-      offsets[i3 + 1] = Math.random() * 8;
+      offsets[i3 + 0] = (Math.random() - 0.5) * 32;
+      offsets[i3 + 1] = (Math.random() - 0.5) * 30;
       offsets[i3 + 2] = (Math.random() - 0.5) * -20;
     }
 

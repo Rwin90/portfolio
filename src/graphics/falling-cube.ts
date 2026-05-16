@@ -25,19 +25,19 @@ export class CubeField {
 
   cameraY = 0;
 
-  count = 111;
+  count = 15;
 
   columns = 34;
 
   columnWidth = 6;
 
-  gravity = -0.00112;
+  gravity = -0.000412;
 
   worldHeight = 80;
 
   floorY = -80;
 
-  interactionRadius = 2.5;
+  interactionRadius = 0.5;
 
   constructor(scene: THREE.Scene, gui?: Gui) {
     //
@@ -56,24 +56,28 @@ export class CubeField {
 
     const material = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color("#ffffff"),
-      roughness: 0.04,
+
       metalness: 0,
+
+      roughness: 0.08,
+
       transmission: 1,
-      thickness: 1.2,
+
+      thickness: 1.8,
+
       ior: 1.45,
+
       clearcoat: 1,
-      clearcoatRoughness: 0.06,
+      clearcoatRoughness: 0.1,
 
-      // brighten glass edges
       attenuationColor: new THREE.Color("#bcd6ff"),
-      attenuationDistance: 1.4,
+      attenuationDistance: 1.0,
 
-      // key visual improvement
-      envMapIntensity: 1.4,
+      envMapIntensity: 1.0,
 
       transparent: true,
+
       depthWrite: false,
-      side: THREE.DoubleSide,
     });
 
     //
