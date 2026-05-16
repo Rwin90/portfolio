@@ -1,37 +1,115 @@
 import * as THREE from "three";
-import { Renderer } from "./renderer";
-import { Camera } from "./camera";
-import { Sizes } from "./sizes";
-import { Time } from "./time";
+
+import { SceneManager } from "./scene-manager";
+import { CameraManager } from "./camera-manager";
+import { RendererManager } from "./renderer-manager";
+
+import { LightingSystem } from "../graphics/lightingSystem";
+import { PostProcessing } from "../graphics/postProcessing";
+
+import { Mouse } from "./mouse";
+import { ScrollController } from "../interactions/scrollController";
+
+import { CubeField } from "../graphics/falling-cube";
+import { DebugWorld } from "./debugger";
+import { LightShafts } from "../graphics/light-shaft";
+import { BackgroundPlane } from "../graphics/background-plane";
+import { Beam } from "../graphics/beam";
+import { Gui } from "./gui";
 
 export class Experience {
-  public scene: THREE.Scene;
-  public renderer: Renderer;
-  public camera: Camera;
-  public sizes: Sizes;
-  public time: Time;
+  scene: THREE.Scene;
+  debug: DebugWorld;
+  gui?: Gui;
+  camera: CameraManager;
+  beams: Beam;
+  renderer: RendererManager;
+
+  cubes: CubeField;
+
+  lighting: LightingSystem;
+
+  post: PostProcessing;
+
+  mouse: Mouse;
+  bg: BackgroundPlane;
+  scroll: ScrollController;
+  shafts: LightShafts;
+  clock = new THREE.Clock();
 
   constructor() {
-    this.scene = new THREE.Scene();
+    this.scene = new SceneManager().scene;
+    // this.debug = new DebugWorld(this.scene);
 
-    this.sizes = new Sizes();
-    this.time = new Time();
+    this.camera = new CameraManager();
 
-    this.camera = new Camera(this);
-    this.renderer = new Renderer(this);
+    // IMPORTANT:
+    // add camera group instead of only camera
+    this.scene.add(this.camera.group);
 
-    this.time.on("tick", this.update.bind(this));
+    this.renderer = new RendererManager(this.scene, this.camera.camera);
+    this.mouse = new Mouse();
 
-    this.sizes.on("resize", this.resize.bind(this));
+    this.scroll = new ScrollController();
+
+    if (import.meta.env.DEV) {
+      this.gui = new Gui();
+    }
+
+    this.lighting = new LightingSystem(this.scene, this.gui);
+    this.bg = new BackgroundPlane(this.scene, this.gui);
+    this.cubes = new CubeField(this.scene, this.gui);
+    this.shafts = new LightShafts(this.scene, 12, this.gui);
+    this.beams = new Beam(this.scene, 12, this.gui);
+    this.post = new PostProcessing(
+      this.renderer.renderer,
+      this.scene,
+      this.camera.camera,
+      this.gui,
+    );
+
+    this.setupScene();
+
+    this.animate();
   }
 
-  resize() {
-    this.camera.resize();
-    this.renderer.resize();
+  setupScene() {
+    this.camera.camera.position.set(0, 8, 22);
+    this.camera.camera.lookAt(0, 0, -20);
+    // this.scene.background = new THREE.Color("#ffffff");
   }
 
-  update() {
-    this.camera.update();
-    this.renderer.update();
-  }
+  animate = (time = 0) => {
+    requestAnimationFrame(this.animate);
+
+    const elapsed = this.clock.getElapsedTime();
+
+    // LENIS UPDATE
+    this.scroll.update(time);
+
+    // CINEMATIC CAMERA UPDATE
+    this.camera.update(
+      this.mouse,
+      this.scroll.progress,
+      this.scroll.velocity,
+      this.cubes.worldHeight,
+    );
+
+    // LIGHTING
+    this.lighting.update(elapsed);
+
+    this.cubes.setCameraY(this.camera.camera.position.y);
+    this.cubes.setCursorWorld(this.mouse.normalized.x, this.mouse.normalized.y);
+    // CUBES
+    this.cubes.update();
+
+    // LIGHT SHAFTS
+    this.shafts.update(elapsed, this.camera.camera.position.y);
+    this.beams.update(elapsed, this.mouse);
+    // POSTPROCESSING
+    // this.post.render();
+
+    //NO PP
+    this.renderer.renderer.render(this.scene, this.camera.camera);
+  };
 }

@@ -2,12 +2,152 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>portfolio</title>
+    <title>Cinematic Portfolio</title>
   </head>
+
   <body>
-    <div id="app"></div>
+    <canvas id="webgl" class="webgl"></canvas>
+
+    <main>
+      <section class="hero">
+        <div class="hero__content">
+          <p class="hero__eyebrow">HEY. I'm</p>
+
+          <h1 class="hero__title">Arwin</h1>
+
+          <p class="hero__description">
+            Frontend Engineer &nbsp;&nbsp; & Creative developer
+          </p>
+
+          <p class="hero__description sub">
+            I build immersive, interactive and performant web experiences with a
+            focus on scalability,creativity and robustness. Need my help? feel
+            free to get in touch!
+          </p>
+          <div class="hero__actions">
+            <button class="magnetic-btn">View My Work</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- experience -->
+      <section class="experience">
+        <div class="xp-container">
+          <!-- LEFT SIDE -->
+          <div class="experience-left">
+            <h2>MY<br />EXPERIENCE</h2>
+
+            <p>
+              A journey through the places I’ve contributed, the problems I’ve
+              solved and the skills I’ve sharpened.
+            </p>
+
+            <button class="magnetic-btn">RESUME</button>
+          </div>
+
+          <!-- RIGHT SIDE -->
+          <div class="timeline">
+            <div class="timeline-line"></div>
+
+            <!-- ITEM -->
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+
+              <div class="timeline-content">
+                <span class="date">2023 — PRESENT</span>
+                <h3>SENIOR FRONTEND ENGINEER</h3>
+                <span class="company">Acme Inc.</span>
+
+                <p>
+                  Leading the frontend architecture: building scalable design
+                  systems and high-performance web applications.
+                </p>
+
+                <div class="tags">
+                  <span>TypeScript</span>
+                  <span>Three.js</span>
+                  <span>GSAP</span>
+                  <span>React</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ITEM -->
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+
+              <div class="timeline-content">
+                <span class="date">2021 — 2023</span>
+                <h3>FRONTEND ENGINEER</h3>
+                <span class="company">Studio XYZ</span>
+
+                <p>
+                  Crafted interactive experiences and microsites for global
+                  brands with strong focus on motion and performance.
+                </p>
+
+                <div class="tags">
+                  <span>JavaScript</span>
+                  <span>GSAP</span>
+                  <span>Canvas</span>
+                  <span>Vite</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ITEM -->
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+
+              <div class="timeline-content">
+                <span class="date">2019 — 2021</span>
+                <h3>WEB DEVELOPER</h3>
+                <span class="company">Digital House</span>
+
+                <p>
+                  Developed responsive websites and web applications with a
+                  focus on UI/UX and clean code.
+                </p>
+
+                <div class="tags">
+                  <span>HTML</span>
+                  <span>CSS</span>
+                  <span>JavaScript</span>
+                  <span>jQuery</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ITEM -->
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+
+              <div class="timeline-content">
+                <span class="date">2021 — 2023</span>
+                <h3>FRONTEND ENGINEER</h3>
+                <span class="company">Studio XYZ</span>
+
+                <p>
+                  Crafted interactive experiences and microsites for global
+                  brands with strong focus on motion and performance.
+                </p>
+
+                <div class="tags">
+                  <span>JavaScript</span>
+                  <span>GSAP</span>
+                  <span>Canvas</span>
+                  <span>Vite</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="spacer"></section>
+    </main>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
