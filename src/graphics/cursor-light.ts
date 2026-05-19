@@ -12,7 +12,7 @@ export class CursorLight {
   private pulseSpeed = 0.8;
 
   constructor(scene: THREE.Scene, gui?: Gui) {
-    this.light = new THREE.PointLight(0x88aaff, 5, 30, 2);
+    this.light = new THREE.PointLight(0x88aaff, 2, 30, 2);
     this.light.position.set(0, 0, 5);
 
     scene.add(this.light);
@@ -85,7 +85,7 @@ export class CursorLight {
 
   update(target: THREE.Vector3, time: number) {
     this.position.lerp(
-      new THREE.Vector3(target.x, target.y, 35),
+      new THREE.Vector3(target.x, target.y + 8, target.z + 33),
       //   target,
       this.smoothing,
     );

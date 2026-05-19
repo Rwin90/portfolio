@@ -13,7 +13,7 @@ export class Beam {
   constructor(scene: THREE.Scene, count: number = 55, gui?: Gui) {
     this.count = count;
 
-    const geometry = new THREE.PlaneGeometry(0.2, Math.random() * 95, 32, 32);
+    const geometry = new THREE.PlaneGeometry(0.2, Math.random() * 95, 64, 64);
 
     const offsets = new Float32Array(this.count * 3);
 
@@ -58,7 +58,7 @@ export class Beam {
 
     this.mesh.frustumCulled = false;
 
-    scene.add(this.mesh);
+    // scene.add(this.mesh);
 
     //
     // GUI

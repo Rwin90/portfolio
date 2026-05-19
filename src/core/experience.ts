@@ -92,22 +92,27 @@ export class Experience {
     this.scroll.update(time);
 
     // CINEMATIC CAMERA UPDATE
-    this.camera.update(
-      this.mouse,
-      this.scroll.progress,
-      this.scroll.velocity,
-      this.cubes.worldHeight,
-    );
+    const cameraWorldPos = new THREE.Vector3();
+    this.camera.camera.getWorldPosition(cameraWorldPos);
 
+    // Unproject mouse position
     const vector = new THREE.Vector3(
-      this.mouse.normalized.x * 15,
-      this.mouse.normalized.y * 20,
-      -15,
+      this.mouse.normalized.x,
+      this.mouse.normalized.y,
+      0.5,
     );
+    vector.unproject(this.camera.camera);
 
-    // vector.unproject(this.camera.camera);
-    vector.setX(this.mouse.normalized.x * 15);
-    this.cursorLight.update(vector, elapsed);
+    // Calculate direction from camera to unprojected point
+    const direction = vector.sub(cameraWorldPos).normalize();
+
+    // Find intersection with desired Z plane (e.g., Z = -15)
+    const targetZ = -15;
+    const distance = (targetZ - cameraWorldPos.z) / direction.z;
+    const finalPosition = cameraWorldPos
+      .clone()
+      .add(direction.multiplyScalar(distance));
+    this.cursorLight.update(finalPosition, elapsed);
 
     // LIGHTING
     this.lighting.update(elapsed);
