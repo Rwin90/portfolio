@@ -1,0 +1,22 @@
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, #0a0d16 0%, #050505 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  opacity: 1;
+  pointer-events: none;
+}
+
+.loading-logo {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: #f5f7ff;
+  filter: drop-shadow(0 0 12px rgba(188, 214, 255, 0.6));
+  transform-origin: center;
+  will-change: transform, filter, opacity;
+}

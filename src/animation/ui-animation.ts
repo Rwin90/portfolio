@@ -138,7 +138,7 @@ export class UIAnimations {
     //
     // ITEMS
     //
-    gsap.utils.toArray(".timeline-item").forEach((item: any, index) => {
+    gsap.utils.toArray(".timeline-item").forEach((item: any) => {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: item,

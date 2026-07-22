@@ -1,5 +1,14 @@
 import * as THREE from "three";
 import type { Gui } from "../core/gui";
+import type { FrameContext, Updatable } from "../core/frame-context";
+import { WORLD } from "../core/world-constants";
+import {
+  createGlassMaterial,
+  createEdgeMaterial,
+  EdgeInstanceBuffers,
+  EDGE_INNER,
+  EDGE_OUTER,
+} from "./glass-material";
 
 type CubeData = {
   position: THREE.Vector3;
@@ -7,570 +16,262 @@ type CubeData = {
   rotation: THREE.Euler;
   rotationalVelocity: THREE.Vector3;
   scale: number;
-  settled: boolean;
-  column: number;
-  emissiveIntensity: number;
+  /** Height at which this cube winks out and recycles to the top. */
+  killY: number;
+  parked: boolean;
 };
 
-export class CubeField {
-  mesh: THREE.InstancedMesh;
+// Cubes further than this from the camera along Y are frozen and scaled to
+// zero — roughly 2x the visible height at fov 35, so nothing pops in-frame.
+const CULL_DISTANCE = 60;
 
-  edgeLines: THREE.LineSegments[] = [];
+export class CubeField implements Updatable {
+  mesh: THREE.InstancedMesh;
+  material: THREE.MeshPhysicalMaterial;
+  edgeMaterialInner: THREE.ShaderMaterial;
+  edgeMaterialOuter: THREE.ShaderMaterial;
+
+  private shellInner: THREE.LineSegments;
+  private shellOuter: THREE.LineSegments;
+  private edgeBuffers: EdgeInstanceBuffers;
 
   cubes: CubeData[] = [];
+  private dummy = new THREE.Object3D();
 
-  dummy = new THREE.Object3D();
+  count = 120;
+  gravity = -0.001;
+  drag = 0.99;
 
-  cursorWorld = new THREE.Vector3();
-
-  cameraY = 0;
-
-  count = 15;
-
-  columns = 34;
-
-  columnWidth = 6;
-
-  gravity = -0.000412;
-
-  worldHeight = 80;
-
-  floorY = -80;
-
-  interactionRadius = 0.5;
+  /** Higher = rain clears higher above the pyramid; 0 = falls to the floor. */
+  densityFalloff = 0.5;
 
   constructor(scene: THREE.Scene, gui?: Gui) {
-    //
-    // FOG
-    //
-    scene.fog = new THREE.FogExp2("#02040a", 0.008);
+    const geometry = new THREE.BoxGeometry(2, 2, 2, 2, 2, 2);
 
-    //
-    // GEOMETRY
-    //
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
-
-    //
-    // MAIN GLASS MATERIAL
-    //
-
-    const material = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color("#ffffff"),
-
-      metalness: 0,
-
-      roughness: 0.08,
-
-      transmission: 1,
-
-      thickness: 1.8,
-
-      ior: 1.45,
-
-      clearcoat: 1,
-      clearcoatRoughness: 0.1,
-
-      attenuationColor: new THREE.Color("#bcd6ff"),
-      attenuationDistance: 1.0,
-
-      envMapIntensity: 1.0,
-
-      transparent: true,
-
-      depthWrite: false,
-    });
-
-    //
-    // MAIN INSTANCED MESH
-    //
-    this.mesh = new THREE.InstancedMesh(geometry, material, this.count);
-
-    //
-    // INSTANCE COLORS
-    //
-    this.mesh.instanceColor = new THREE.InstancedBufferAttribute(
-      new Float32Array(this.count * 3),
-      3,
-    );
-
+    this.material = createGlassMaterial();
+    this.mesh = new THREE.InstancedMesh(geometry, this.material, this.count);
+    this.mesh.frustumCulled = false;
     scene.add(this.mesh);
 
-    //
-    // EDGE OVERLAY
-    //
-    const edgeGeometry = new THREE.EdgesGeometry(geometry);
+    // Two edge shells, sharing one set of per-instance transform buffers so
+    // each cube's transform is written once per frame, not twice.
+    this.edgeBuffers = new EdgeInstanceBuffers(this.count);
+    const edgeSource = new THREE.EdgesGeometry(geometry, 20);
 
-    const edgeMaterial = new THREE.LineBasicMaterial({
-      color: new THREE.Color("#e8f0ff"),
+    this.edgeMaterialInner = createEdgeMaterial(EDGE_INNER);
+    this.edgeMaterialOuter = createEdgeMaterial(EDGE_OUTER);
 
-      transparent: true,
+    this.shellInner = new THREE.LineSegments(
+      this.edgeBuffers.attachTo(edgeSource, this.count),
+      this.edgeMaterialInner,
+    );
+    this.shellOuter = new THREE.LineSegments(
+      this.edgeBuffers.attachTo(edgeSource, this.count),
+      this.edgeMaterialOuter,
+    );
+    this.shellInner.frustumCulled = false;
+    this.shellOuter.frustumCulled = false;
+    scene.add(this.shellInner, this.shellOuter);
 
-      opacity: 1.0,
-
-      blending: THREE.AdditiveBlending,
-
-      depthWrite: false,
-    });
+    edgeSource.dispose();
 
     for (let i = 0; i < this.count; i++) {
-      const edges = new THREE.LineSegments(edgeGeometry, edgeMaterial);
-
-      scene.add(edges);
-
-      this.edgeLines.push(edges);
+      this.cubes.push(this.createCube(true));
     }
 
-    //
-    // CREATE CUBES
-    //
-    for (let i = 0; i < this.count; i++) {
-      this.cubes.push(this.createCube());
-    }
-
-    if (gui) {
-      const folder = gui.folder("Cube Field");
-
-      const fogFolder = folder.addFolder?.("Fog") ?? folder;
-      const materialFolder = folder.addFolder?.("Glass Material") ?? folder;
-      const edgeFolder = folder.addFolder?.("Edge Lines") ?? folder;
-      const physicsFolder = folder.addFolder?.("Physics") ?? folder;
-      const transformFolder = folder.addFolder?.("Transform") ?? folder;
-      const debugFolder = folder.addFolder?.("Debug") ?? folder;
-
-      const fogParams = {
-        fogColor: "#02040a",
-        fogDensity: 0.008,
-      };
-
-      const materialParams = {
-        color: "#ffffff",
-        roughness: material.roughness,
-        metalness: material.metalness,
-        transmission: material.transmission,
-        thickness: material.thickness,
-        ior: material.ior,
-        clearcoat: material.clearcoat,
-        clearcoatRoughness: material.clearcoatRoughness,
-        attenuationColor: "#bcd6ff",
-        attenuationDistance: material.attenuationDistance ?? 1.4,
-        envMapIntensity: material.envMapIntensity,
-        transparent: material.transparent,
-        depthWrite: material.depthWrite,
-        visible: this.mesh.visible,
-      };
-
-      const edgeParams = {
-        visible: true,
-        color: "#e8f0ff",
-        opacity: edgeMaterial.opacity,
-        depthWrite: edgeMaterial.depthWrite,
-      };
-
-      const physicsParams = {
-        gravity: this.gravity,
-        columnWidth: this.columnWidth,
-        worldHeight: this.worldHeight,
-        floorY: this.floorY,
-        interactionRadius: this.interactionRadius,
-      };
-
-      const transformParams = {
-        posX: this.mesh.position.x,
-        posY: this.mesh.position.y,
-        posZ: this.mesh.position.z,
-
-        rotX: this.mesh.rotation.x,
-        rotY: this.mesh.rotation.y,
-        rotZ: this.mesh.rotation.z,
-
-        scaleX: this.mesh.scale.x,
-        scaleY: this.mesh.scale.y,
-        scaleZ: this.mesh.scale.z,
-      };
-
-      const debugParams = {
-        count: this.count,
-        columns: this.columns,
-        cameraY: this.cameraY,
-        cursorX: this.cursorWorld.x,
-        cursorY: this.cursorWorld.y,
-        cursorZ: this.cursorWorld.z,
-      };
-
-      fogFolder.addColor(fogParams, "fogColor").onChange((value: string) => {
-        const fog = scene.fog as THREE.FogExp2 | null;
-        if (!fog) return;
-        fog.color.set(value);
-      });
-
-      fogFolder
-        .add(fogParams, "fogDensity", 0, 0.05, 0.0001)
-        .onChange((value: number) => {
-          const fog = scene.fog as THREE.FogExp2 | null;
-          if (!fog) return;
-          fog.density = value;
-        });
-
-      materialFolder
-        .addColor(materialParams, "color")
-        .onChange((value: string) => {
-          material.color.set(value);
-        });
-
-      materialFolder
-        .add(materialParams, "roughness", 0, 1, 0.001)
-        .onChange((value: number) => {
-          material.roughness = value;
-        });
-
-      materialFolder
-        .add(materialParams, "metalness", 0, 1, 0.001)
-        .onChange((value: number) => {
-          material.metalness = value;
-        });
-
-      materialFolder
-        .add(materialParams, "transmission", 0, 1, 0.001)
-        .onChange((value: number) => {
-          material.transmission = value;
-        });
-
-      materialFolder
-        .add(materialParams, "thickness", 0, 10, 0.001)
-        .onChange((value: number) => {
-          material.thickness = value;
-        });
-
-      materialFolder
-        .add(materialParams, "ior", 1, 2.5, 0.001)
-        .onChange((value: number) => {
-          material.ior = value;
-        });
-
-      materialFolder
-        .add(materialParams, "clearcoat", 0, 1, 0.001)
-        .onChange((value: number) => {
-          material.clearcoat = value;
-        });
-
-      materialFolder
-        .add(materialParams, "clearcoatRoughness", 0, 1, 0.001)
-        .onChange((value: number) => {
-          material.clearcoatRoughness = value;
-        });
-
-      materialFolder
-        .addColor(materialParams, "attenuationColor")
-        .onChange((value: string) => {
-          material.attenuationColor?.set(value);
-        });
-
-      materialFolder
-        .add(materialParams, "attenuationDistance", 0, 20, 0.001)
-        .onChange((value: number) => {
-          material.attenuationDistance = value;
-        });
-
-      materialFolder
-        .add(materialParams, "envMapIntensity", 0, 10, 0.001)
-        .onChange((value: number) => {
-          material.envMapIntensity = value;
-        });
-
-      materialFolder
-        .add(materialParams, "transparent")
-        .onChange((value: boolean) => {
-          material.transparent = value;
-          material.needsUpdate = true;
-        });
-
-      materialFolder
-        .add(materialParams, "depthWrite")
-        .onChange((value: boolean) => {
-          material.depthWrite = value;
-          material.needsUpdate = true;
-        });
-
-      materialFolder
-        .add(materialParams, "visible")
-        .onChange((value: boolean) => {
-          this.mesh.visible = value;
-        });
-
-      edgeFolder.add(edgeParams, "visible").onChange((value: boolean) => {
-        for (const line of this.edgeLines) {
-          line.visible = value;
-        }
-      });
-
-      edgeFolder.addColor(edgeParams, "color").onChange((value: string) => {
-        edgeMaterial.color.set(value);
-      });
-
-      edgeFolder
-        .add(edgeParams, "opacity", 0, 5, 0.001)
-        .onChange((value: number) => {
-          edgeMaterial.opacity = value;
-        });
-
-      edgeFolder.add(edgeParams, "depthWrite").onChange((value: boolean) => {
-        edgeMaterial.depthWrite = value;
-        edgeMaterial.needsUpdate = true;
-      });
-
-      physicsFolder
-        .add(physicsParams, "gravity", -0.02, 0.02, 0.00001)
-        .onChange((value: number) => {
-          this.gravity = value;
-        });
-
-      physicsFolder
-        .add(physicsParams, "columnWidth", 0.1, 20, 0.001)
-        .onChange((value: number) => {
-          this.columnWidth = value;
-        });
-
-      physicsFolder
-        .add(physicsParams, "worldHeight", 1, 300, 0.1)
-        .onChange((value: number) => {
-          this.worldHeight = value;
-        });
-
-      physicsFolder
-        .add(physicsParams, "floorY", -200, 200, 0.1)
-        .onChange((value: number) => {
-          this.floorY = value;
-        });
-
-      physicsFolder
-        .add(physicsParams, "interactionRadius", 0, 20, 0.001)
-        .onChange((value: number) => {
-          this.interactionRadius = value;
-        });
-
-      transformFolder
-        .add(transformParams, "posX", -100, 100, 0.001)
-        .onChange((value: number) => {
-          this.mesh.position.x = value;
-        });
-
-      transformFolder
-        .add(transformParams, "posY", -100, 100, 0.001)
-        .onChange((value: number) => {
-          this.mesh.position.y = value;
-        });
-
-      transformFolder
-        .add(transformParams, "posZ", -100, 100, 0.001)
-        .onChange((value: number) => {
-          this.mesh.position.z = value;
-        });
-
-      transformFolder
-        .add(transformParams, "rotX", -Math.PI, Math.PI, 0.001)
-        .onChange((value: number) => {
-          this.mesh.rotation.x = value;
-        });
-
-      transformFolder
-        .add(transformParams, "rotY", -Math.PI, Math.PI, 0.001)
-        .onChange((value: number) => {
-          this.mesh.rotation.y = value;
-        });
-
-      transformFolder
-        .add(transformParams, "rotZ", -Math.PI, Math.PI, 0.001)
-        .onChange((value: number) => {
-          this.mesh.rotation.z = value;
-        });
-
-      transformFolder
-        .add(transformParams, "scaleX", 0.001, 20, 0.001)
-        .onChange((value: number) => {
-          this.mesh.scale.x = value;
-        });
-
-      transformFolder
-        .add(transformParams, "scaleY", 0.001, 20, 0.001)
-        .onChange((value: number) => {
-          this.mesh.scale.y = value;
-        });
-
-      transformFolder
-        .add(transformParams, "scaleZ", 0.001, 20, 0.001)
-        .onChange((value: number) => {
-          this.mesh.scale.z = value;
-        });
-
-      debugFolder.add(debugParams, "count").disable?.();
-      debugFolder.add(debugParams, "columns").disable?.();
-      debugFolder.add(debugParams, "cameraY").listen?.();
-      debugFolder.add(debugParams, "cursorX").listen?.();
-      debugFolder.add(debugParams, "cursorY").listen?.();
-      debugFolder.add(debugParams, "cursorZ").listen?.();
-    }
+    this.setupGui(gui);
   }
 
-  //
-  // CREATE SINGLE CUBE
-  //
-  createCube(): CubeData {
-    const column = Math.floor(Math.random() * this.columns);
+  private randomX() {
+    return WORLD.X_MIN + Math.random() * WORLD.WIDTH;
+  }
 
-    const x = (column - this.columns / 2) * this.columnWidth;
+  private randomZ() {
+    // Kept close to the back wall, well away from the camera at CAM_Z, so the
+    // rain reads as distant depth rather than debris near the lens.
+    return WORLD.BACK_Z + 3 + Math.random() * (WORLD.DEPTH * 0.2);
+  }
 
+  /**
+   * The height at which a cube winks out and recycles to the top.
+   *
+   * A cube exists between the top and its kill height. Kill heights are skewed
+   * toward RAIN_CLEAR_Y (exponent > 1), so most cubes fall nearly the whole
+   * way and the rain stays dense through the descent, thinning only in the
+   * last stretch before it clears at RAIN_CLEAR_Y — leaving the pyramid's air
+   * calm. Higher densityFalloff pulls the thinning band up, clearing sooner.
+   */
+  private sampleKillY(): number {
+    const span = WORLD.TOP_Y - WORLD.RAIN_CLEAR_Y;
+    const biased = Math.pow(Math.random(), 1 + this.densityFalloff * 4);
+    return WORLD.RAIN_CLEAR_Y + biased * span;
+  }
+
+  private createCube(initial: boolean): CubeData {
+    const killY = this.sampleKillY();
     return {
       position: new THREE.Vector3(
-        x,
-
-        Math.random() * this.worldHeight + 20,
-
-        -20 - Math.random() * 30,
+        this.randomX(),
+        // Spread the initial fill over each cube's live range; recycled cubes
+        // drop in from just above the top.
+        initial
+          ? killY + Math.random() * (WORLD.TOP_Y - killY)
+          : WORLD.TOP_Y + Math.random() * 60,
+        this.randomZ(),
       ),
 
       velocity: new THREE.Vector3(),
-
-      rotation: new THREE.Euler(),
-
+      rotation: new THREE.Euler(
+        Math.random() * Math.PI,
+        Math.random() * Math.PI,
+        Math.random() * Math.PI,
+      ),
       rotationalVelocity: new THREE.Vector3(
-        (Math.random() - 0.5) * 0.002,
-
-        (Math.random() - 0.5) * 0.002,
-
-        (Math.random() - 0.5) * 0.002,
+        (Math.random() - 0.5) * 0.6,
+        (Math.random() - 0.5) * 0.6,
+        (Math.random() - 0.5) * 0.6,
       ),
 
-      scale: 0.8 + Math.random() * 1.2,
-
-      settled: false,
-
-      emissiveIntensity: 0.2 + Math.random() * 0.4,
-
-      column,
+      scale: 0.55 + Math.random() * 0.75,
+      killY,
+      parked: false,
     };
   }
 
-  //
-  // OPTIONAL MOUSE INTERACTION
-  //
-  setCursorWorld(x: number, y: number) {
-    this.cursorWorld.set(x, y, 0);
+  /** Sends a cube back to the top with a fresh column and kill height. */
+  private recycle(cube: CubeData) {
+    cube.killY = this.sampleKillY();
+    cube.position.set(
+      this.randomX(),
+      WORLD.TOP_Y + Math.random() * 60,
+      this.randomZ(),
+    );
+    cube.velocity.set(0, 0, 0);
+    cube.scale = 0.55 + Math.random() * 0.75;
   }
 
-  //
-  // CAMERA Y
-  //
-  setCameraY(y: number) {
-    this.cameraY = y;
-  }
-
-  //
-  // UPDATE LOOP
-  //
-  update() {
-    const radiusSq = this.interactionRadius * this.interactionRadius;
+  update(ctx: FrameContext) {
+    const time = ctx.elapsed;
+    const camY = ctx.cameraPos.y;
+    // Physics tuned in per-frame units at 60fps; scale by real delta so it is
+    // frame-rate independent.
+    const step = Math.min(ctx.delta, 0.1) * 60;
 
     for (let i = 0; i < this.count; i++) {
       const cube = this.cubes[i];
 
-      //
-      // FALLING
-      //
-      if (!cube.settled) {
-        cube.velocity.y += this.gravity;
+      const active = Math.abs(cube.position.y - camY) < CULL_DISTANCE;
 
-        cube.position.add(cube.velocity);
-
-        cube.velocity.multiplyScalar(0.985);
-
-        //
-        // ROTATION
-        //
-        cube.rotation.x += cube.rotationalVelocity.x;
-
-        cube.rotation.y += cube.rotationalVelocity.y;
-
-        cube.rotation.z += cube.rotationalVelocity.z;
-
-        //
-        // SUBTLE CURSOR FORCE
-        //
-        const col = (this.columns / 2) * this.columnWidth;
-        const dx =
-          mapRange(cube.position.x, -col, col, -1, 1) - this.cursorWorld.x;
-        const dy =
-          mapRange(cube.position.y, -80, 60, -1, 1) - this.cursorWorld.y;
-
-        const distSq = dx * dx + dy * dy;
-
-        if (distSq < radiusSq) {
-          const force = 1 - distSq / radiusSq;
-
-          cube.velocity.x += dx * force * 0.0006;
-
-          cube.velocity.y += dy * force * 0.0006;
+      if (!active) {
+        // Park once (zero scale, no matrix churn) and skip physics until the
+        // camera comes back into range.
+        if (!cube.parked) {
+          this.dummy.position.copy(cube.position);
+          this.dummy.scale.setScalar(0);
+          this.dummy.updateMatrix();
+          this.mesh.setMatrixAt(i, this.dummy.matrix);
+          this.edgeBuffers.write(i, this.dummy);
+          cube.parked = true;
         }
-
-        //
-        // FLOOR COLLISION
-        //
-        if (cube.position.y <= this.floorY) {
-          cube.position.y = this.floorY;
-
-          cube.settled = true;
-
-          cube.velocity.set(0, 0, 0);
-        }
+        // Still advance the fall while parked, cheaply, so cubes don't freeze
+        // just off-screen and reappear stalled.
+        cube.velocity.y += this.gravity * step;
+        cube.position.y += cube.velocity.y * step;
+        cube.velocity.y *= this.drag;
+        if (cube.position.y < cube.killY) this.recycle(cube);
+        continue;
       }
+      cube.parked = false;
 
-      //
-      // SETTLED STATE
-      //
-      else {
-        cube.rotation.x += 0.0001;
+      cube.velocity.y += this.gravity * step;
+      cube.position.addScaledVector(cube.velocity, step);
+      cube.velocity.multiplyScalar(this.drag);
 
-        cube.rotation.y += 0.00015;
-      }
+      cube.rotation.x += cube.rotationalVelocity.x * 0.01 * step;
+      cube.rotation.y += cube.rotationalVelocity.y * 0.01 * step;
+      cube.rotation.z += cube.rotationalVelocity.z * 0.01 * step;
 
-      //
-      // MATRIX
-      //
+      // Wink out above the pyramid and fall again from the top.
+      if (cube.position.y < cube.killY) this.recycle(cube);
+
       this.dummy.position.copy(cube.position);
-
       this.dummy.rotation.copy(cube.rotation);
-
-      //
-      // SLIGHT VERTICAL STRETCH
-      //
-      this.dummy.scale.set(
-        cube.scale,
-
-        cube.scale * 1.15,
-
-        cube.scale,
-      );
-
+      this.dummy.scale.set(cube.scale, cube.scale * 1.15, cube.scale);
       this.dummy.updateMatrix();
 
-      //
-      // APPLY MATRICES
-      //
       this.mesh.setMatrixAt(i, this.dummy.matrix);
-
-      this.edgeLines[i].position.copy(cube.position);
-
-      this.edgeLines[i].rotation.copy(cube.rotation);
-
-      this.edgeLines[i].scale.set(cube.scale, cube.scale * 1.15, cube.scale);
+      this.edgeBuffers.write(i, this.dummy);
     }
 
-    //
-    // UPDATE FLAGS
-    //
     this.mesh.instanceMatrix.needsUpdate = true;
-  }
-}
+    this.edgeBuffers.markDirty();
 
-function mapRange(x, inMin, inMax, outMin, outMax) {
-  return outMin + ((x - inMin) * (outMax - outMin)) / (inMax - inMin);
+    this.edgeMaterialInner.uniforms.uTime.value = time;
+    this.edgeMaterialOuter.uniforms.uTime.value = time * 0.7;
+  }
+
+  private setupGui(gui?: Gui) {
+    if (!gui) return;
+
+    const folder = gui.folder("Cube Field");
+    const materialFolder = folder.addFolder("Glass Material");
+    const edgeFolder = folder.addFolder("Edge Lines");
+    const physicsFolder = folder.addFolder("Physics");
+
+    const m = this.material;
+
+    materialFolder
+      .addColor({ c: "#6906ec" }, "c")
+      .name("color")
+      .onChange((v: string) => m.color.set(v));
+    materialFolder.add(m, "roughness", 0, 1, 0.001);
+    materialFolder.add(m, "metalness", 0, 1, 0.001);
+    materialFolder.add(m, "transmission", 0, 1, 0.001);
+    materialFolder.add(m, "thickness", 0, 10, 0.001);
+    materialFolder.add(m, "ior", 1, 2.5, 0.001);
+    materialFolder.add(m, "clearcoat", 0, 1, 0.001);
+    materialFolder.add(m, "clearcoatRoughness", 0, 1, 0.001);
+    materialFolder.add(m, "envMapIntensity", 0, 4, 0.01);
+    materialFolder.add(this.mesh, "visible").name("cubes visible");
+
+    for (const [name, mat] of [
+      ["Inner", this.edgeMaterialInner],
+      ["Outer", this.edgeMaterialOuter],
+    ] as const) {
+      const sub = edgeFolder.addFolder(name);
+      sub
+        .addColor({ c: mat.uniforms.uColor.value.getHexString() }, "c")
+        .name("color")
+        .onChange((v: string) => mat.uniforms.uColor.value.set(v));
+      sub.add(mat.uniforms.uBaseGlow, "value", 0, 3, 0.01).name("base glow");
+      sub
+        .add(mat.uniforms.uPulseStrength, "value", 0, 3, 0.01)
+        .name("pulse strength");
+      sub
+        .add(mat.uniforms.uPulseSpeed, "value", 0.1, 3, 0.01)
+        .name("pulse speed");
+      sub
+        .add(mat.uniforms.uEdgeScale, "value", 0.9, 1.8, 0.001)
+        .name("edge scale");
+    }
+
+    physicsFolder.add(this, "gravity", -0.1, 0, 0.001).name("gravity");
+    physicsFolder.add(this, "drag", 0.9, 1, 0.001).name("drag");
+    physicsFolder
+      .add(this, "densityFalloff", 0, 1, 0.01)
+      .name("density falloff");
+  }
+
+  dispose() {
+    this.mesh.geometry.dispose();
+    this.material.dispose();
+    this.mesh.removeFromParent();
+
+    this.shellInner.geometry.dispose();
+    this.shellOuter.geometry.dispose();
+    this.edgeMaterialInner.dispose();
+    this.edgeMaterialOuter.dispose();
+    this.shellInner.removeFromParent();
+    this.shellOuter.removeFromParent();
+  }
 }

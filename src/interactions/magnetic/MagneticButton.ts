@@ -23,9 +23,9 @@ export class MagneticButton {
     const y = e.clientY - rect.top - rect.height / 2;
 
     gsap.to(this.el, {
-      x: x * 0.2,
-      y: y * 0.2,
-      duration: 0.6,
+      x: x * 1.2,
+      y: y * 1.2,
+      duration: 1.6,
       ease: "power3.out",
     });
   };
@@ -35,7 +35,7 @@ export class MagneticButton {
       x: 0,
       y: 0,
       scale: 1,
-      duration: 0.8,
+      duration: 1.8,
       ease: "elastic.out(1,0.5)",
     });
   };

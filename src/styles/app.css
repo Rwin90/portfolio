@@ -17,7 +17,6 @@
 html,
 body {
   width: 100%;
-  min-height: 400vh;
   background: var(--bg);
   color: var(--text);
   overflow-x: hidden;
@@ -29,11 +28,11 @@ body::before {
   position: fixed;
   inset: 0;
 
-  background:
+  /* background:
     radial-gradient(circle at top, rgba(80, 100, 255, 0.12), transparent 45%),
-    radial-gradient(circle at bottom, rgba(0, 0, 0, 0.9), #050505);
+    radial-gradient(circle at bottom, rgba(0, 0, 0, 0.9), #050505); */
 
-  pointer-events: none;
+  /* pointer-events: none; */
   z-index: 0;
 }
 
@@ -47,6 +46,8 @@ body::before {
 main {
   position: relative;
   z-index: 2;
+  /* pointer-events: none; */
+  overflow: hidden;
 }
 
 /* hero section */
@@ -135,9 +136,6 @@ main {
   background: transparent;
 }
 
-.spacer {
-  height: 200vh;
-}
 
 @media (max-width: 768px) {
   .hero {
@@ -153,8 +151,14 @@ main {
 
 /* experience section */
 
+/* Section heights set the pace of the camera's travel down the box as much as
+   they set the pace of the reading. Extra height past the content is
+   deliberate: it buys the camera room to move while the copy holds still. */
 .experience {
+  min-height: 200vh;
   padding: 120px 0;
+  display: flex;
+  align-items: center;
 }
 
 .xp-container {
@@ -281,4 +285,104 @@ main {
   border-radius: 6px;
   color: #cbd3e6;
   background: rgba(255, 255, 255, 0.02);
+}
+
+/* work section */
+
+.work {
+  min-height: 120vh;
+  padding: 120px 0;
+  display: flex;
+  align-items: center;
+}
+
+.work__inner {
+  width: 100%;
+  padding: 0 8vw;
+}
+
+.work__heading {
+  font-size: 64px;
+  line-height: 1;
+  margin-bottom: 80px;
+}
+
+.work__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 60px;
+}
+
+.work-item {
+  border-top: 1px solid var(--border);
+  padding-top: 24px;
+}
+
+.work-item__index {
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: #8a93a8;
+}
+
+.work-item h3 {
+  margin: 12px 0 10px;
+  font-size: 22px;
+}
+
+.work-item p {
+  color: #8a93a8;
+  line-height: 1.6;
+}
+
+/* outro section — the camera arcs to top-down across this range */
+
+/* Tall on purpose: the camera arcs from side-on to top-down across this
+   section, and splitT is derived from its offsetTop. A short outro would
+   compress that arc into a snap. */
+.outro {
+  min-height: 200vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 8vw;
+}
+
+.outro__heading {
+  font-size: clamp(3rem, 7vw, 6rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  margin-bottom: 24px;
+}
+
+.outro__text {
+  color: #8a93a8;
+  margin-bottom: 40px;
+  line-height: 1.6;
+}
+
+.outro__actions {
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .work__heading,
+  .experience-left h2 {
+    font-size: 40px;
+  }
+
+  .xp-container {
+    flex-direction: column;
+    gap: 60px;
+  }
+
+  .experience-left,
+  .timeline {
+    width: 100%;
+  }
+
+  .timeline {
+    padding-top: 0;
+  }
 }

@@ -1,65 +1,76 @@
 import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { WORLD } from "./world-constants";
 
+/**
+ * DEV-only scaffolding: draws the bounds of the box and landmarks along its
+ * length so you can tell at a glance whether the camera is where you think.
+ */
 export class DebugWorld {
+  controls?: OrbitControls;
+
+  private objects: THREE.Object3D[] = [];
+
   constructor(scene: THREE.Scene) {
-    // MAIN GRID
-    const grid = new THREE.GridHelper(120, 60, 0x444444, 0x222222);
+    // BOX BOUNDS
+    const box = new THREE.Box3(
+      new THREE.Vector3(WORLD.X_MIN, WORLD.FLOOR_Y, WORLD.BACK_Z),
+      new THREE.Vector3(WORLD.X_MAX, WORLD.TOP_Y, WORLD.FRONT_Z),
+    );
+    this.add(scene, new THREE.Box3Helper(box, new THREE.Color(0x2244aa)));
 
-    grid.position.y = -80;
+    // FLOOR GRID at the bottom of the box
+    const grid = new THREE.GridHelper(
+      WORLD.WIDTH,
+      WORLD.WIDTH / 10,
+      0x444444,
+      0x222222,
+    );
+    grid.position.set(0, WORLD.FLOOR_Y + 0.05, WORLD.BACK_Z + WORLD.DEPTH / 2);
+    this.add(scene, grid);
 
-    scene.add(grid);
+    // ORIGIN AXES
+    this.add(scene, new THREE.AxesHelper(30));
 
-    // AXES
-    const axes = new THREE.AxesHelper(30);
-    axes.position.set(0, -80, 0);
-    scene.add(axes);
+    // LANDMARKS DOWN THE CAMERA RAIL
+    for (let y = WORLD.FLOOR_Y; y <= WORLD.TOP_Y; y += 60) {
+      this.createMarker(scene, y);
+    }
 
-    // VERTICAL DEPTH PLANES
-    this.createDepthPlane(scene, -10);
-    this.createDepthPlane(scene, -25);
-    this.createDepthPlane(scene, -40);
-
-    // SCROLL LANDMARKS
-    this.createMarker(scene, 0, "TOP");
-    this.createMarker(scene, -40, "MID");
-    this.createMarker(scene, -80, "BOTTOM");
+    // PYRAMID SITE
+    this.createMarker(scene, WORLD.FLOOR_Y, 0xff8844);
   }
 
-  createDepthPlane(scene: THREE.Scene, z: number) {
-    const geometry = new THREE.PlaneGeometry(160, 160, 40, 40);
-
-    const material = new THREE.MeshBasicMaterial({
-      color: 0x3333ff,
-
-      wireframe: true,
-
-      transparent: true,
-
-      opacity: 0.001,
-    });
-
-    const plane = new THREE.Mesh(geometry, material);
-
-    plane.position.z = z;
-
-    scene.add(plane);
+  private add(scene: THREE.Scene, object: THREE.Object3D) {
+    scene.add(object);
+    this.objects.push(object);
   }
 
-  createMarker(scene: THREE.Scene, y: number, label: string) {
-    const geometry = new THREE.BoxGeometry(4, 1, 4);
+  addOrbit(camera: THREE.Camera, element: HTMLCanvasElement) {
+    this.controls = new OrbitControls(camera, element);
 
-    const material = new THREE.MeshBasicMaterial({
-      color: 0x5555ff,
+    this.controls.enableDamping = true;
+    this.controls.dampingFactor = 0.05;
+    this.controls.target.set(0, WORLD.HEIGHT / 2, WORLD.BACK_Z);
+  }
 
-      wireframe: true,
-    });
+  updateControl() {
+    this.controls?.update();
+  }
+
+  createMarker(scene: THREE.Scene, y: number, color = 0x5555ff) {
+    const geometry = new THREE.BoxGeometry(2, 2, 2);
+    const material = new THREE.MeshBasicMaterial({ color, wireframe: true });
 
     const marker = new THREE.Mesh(geometry, material);
+    marker.position.set(WORLD.X_MIN - 3, y, WORLD.BACK_Z + 6);
 
-    marker.position.set(0, y, -10);
+    this.add(scene, marker);
+  }
 
-    scene.add(marker);
-
-    console.log(label, y);
+  dispose() {
+    this.controls?.dispose();
+    for (const object of this.objects) object.removeFromParent();
+    this.objects.length = 0;
   }
 }

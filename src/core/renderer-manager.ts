@@ -3,9 +3,7 @@ import * as THREE from "three";
 export class RendererManager {
   renderer: THREE.WebGLRenderer;
 
-  constructor(scene: THREE.Scene, camera: THREE.Camera) {
-    const canvas = document.querySelector(".webgl") as HTMLCanvasElement;
-
+  constructor(canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: true,
@@ -24,7 +22,11 @@ export class RendererManager {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     // TONE MAPPING
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    // The post-processing ToneMappingEffect owns tone mapping (ACES), so the
+    // renderer must NOT also tone-map or the scene is mapped twice. Exposure
+    // still lives here — the effect's ACES path reads toneMappingExposure via
+    // three's <tonemapping_pars_fragment>.
+    this.renderer.toneMapping = THREE.NoToneMapping;
 
     this.renderer.toneMappingExposure = 0.65;
 
@@ -46,13 +48,16 @@ export class RendererManager {
     // OPTIONAL:
     // softer light gradients
     THREE.ColorManagement.enabled = true;
-
-    window.addEventListener("resize", this.onResize);
   }
 
-  onResize = () => {
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+  // Driven by Sizes — the app's single resize listener.
+  resize(width: number, height: number, pixelRatio: number) {
+    this.renderer.setSize(width, height);
 
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-  };
+    this.renderer.setPixelRatio(pixelRatio);
+  }
+
+  dispose() {
+    this.renderer.dispose();
+  }
 }

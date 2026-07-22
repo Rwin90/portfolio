@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import type { Gui } from "../core/gui";
+import type { FrameContext, Updatable } from "../core/frame-context";
 
 type Shaft = {
   mesh: THREE.Mesh;
@@ -7,20 +8,20 @@ type Shaft = {
   offset: number;
 };
 
-export class LightShafts {
+export class LightShafts implements Updatable {
   shafts: Shaft[] = [];
 
-  private motionAmplitude = 10;
-  private baseOpacity = 0.025;
-  private flickerAmplitude = 0.1;
+  private motionAmplitude = 15;
+  private baseOpacity = 0.014;
+  private flickerAmplitude = 0.05;
   private flickerSpeed = 0.4;
-  private color = new THREE.Color(0.6, 0.75, 1);
+  private color = new THREE.Color(0.6, 29, 87);
   private visible = true;
-
-  constructor(scene: THREE.Scene, count: number = 20, gui?: Gui) {
+  count: number;
+  constructor(scene: THREE.Scene, count?: number, gui?: Gui) {
     const geometry = new THREE.PlaneGeometry(1, 140);
-
-    for (let i = 0; i < count; i++) {
+    this.count = count ?? 10;
+    for (let i = 0; i < this.count; i++) {
       const material = new THREE.MeshBasicMaterial({
         color: new THREE.Color(0.6, 0.75, 1),
         transparent: true,
@@ -72,7 +73,7 @@ export class LightShafts {
 
         speedMultiplier: 1,
 
-        count,
+        count: this.count,
       };
 
       folder.add(params, "visible").onChange((value: boolean) => {
@@ -174,17 +175,27 @@ export class LightShafts {
     }
   }
 
-  update(time: number, cameraY: number) {
+  update(ctx: FrameContext) {
     for (const shaft of this.shafts) {
       shaft.mesh.position.y =
-        cameraY +
-        Math.sin(time * shaft.speed + shaft.offset) * this.motionAmplitude;
+        ctx.cameraPos.y +
+        Math.sin(ctx.elapsed * shaft.speed + shaft.offset) *
+          this.motionAmplitude;
 
       const material = shaft.mesh.material as THREE.MeshBasicMaterial;
       material.opacity =
         this.baseOpacity +
-        Math.sin(time * this.flickerSpeed + shaft.offset) *
+        Math.sin(ctx.elapsed * this.flickerSpeed + shaft.offset) *
           this.flickerAmplitude;
     }
+  }
+
+  dispose() {
+    for (const shaft of this.shafts) {
+      shaft.mesh.geometry.dispose();
+      (shaft.mesh.material as THREE.Material).dispose();
+      shaft.mesh.removeFromParent();
+    }
+    this.shafts.length = 0;
   }
 }
