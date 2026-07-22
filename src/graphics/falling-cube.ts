@@ -16,14 +16,9 @@ type CubeData = {
   rotation: THREE.Euler;
   rotationalVelocity: THREE.Vector3;
   scale: number;
-  /** Height at which this cube winks out and recycles to the top. */
-  killY: number;
   parked: boolean;
 };
 
-// Cubes further than this from the camera along Y are frozen and scaled to
-// zero — roughly 2x the visible height at fov 35, so nothing pops in-frame.
-const CULL_DISTANCE = 60;
 
 export class CubeField implements Updatable {
   mesh: THREE.InstancedMesh;
@@ -38,12 +33,12 @@ export class CubeField implements Updatable {
   cubes: CubeData[] = [];
   private dummy = new THREE.Object3D();
 
-  count = 120;
+  // World-space rain: spread over the whole box height, so the count is the
+  // TOTAL, not what's on screen. At any scroll position only a couple sit in
+  // the ~40-unit visible band. Lower this for fewer, raise for more.
+  count = 16;
   gravity = -0.001;
   drag = 0.99;
-
-  /** Higher = rain clears higher above the pyramid; 0 = falls to the floor. */
-  densityFalloff = 0.5;
 
   constructor(scene: THREE.Scene, gui?: Gui) {
     const geometry = new THREE.BoxGeometry(2, 2, 2, 2, 2, 2);
@@ -76,50 +71,42 @@ export class CubeField implements Updatable {
     edgeSource.dispose();
 
     for (let i = 0; i < this.count; i++) {
-      this.cubes.push(this.createCube(true));
+      this.cubes.push(this.createCube());
     }
 
     this.setupGui(gui);
   }
 
   private randomX() {
-    return WORLD.X_MIN + Math.random() * WORLD.WIDTH;
+    // Spawn only in the left/right bands, never the central third, so the rain
+    // never sits behind the reading column in the middle of the screen.
+    const side = Math.random() < 0.5 ? -1 : 1;
+    const inner = WORLD.WIDTH * 0.18; // edge of the clear central gap
+    const outer = WORLD.WIDTH * 0.5; // box edge
+    return side * (inner + Math.random() * (outer - inner));
   }
 
   private randomZ() {
-    // Kept close to the back wall, well away from the camera at CAM_Z, so the
-    // rain reads as distant depth rather than debris near the lens.
-    return WORLD.BACK_Z + 3 + Math.random() * (WORLD.DEPTH * 0.2);
+    // Pressed right up against the back wall, as far from the camera as the box
+    // allows, so the rain reads as distant depth rather than debris.
+    return WORLD.BACK_Z + 2 + Math.random() * (WORLD.DEPTH * 0.1);
   }
 
-  /**
-   * The height at which a cube winks out and recycles to the top.
-   *
-   * A cube exists between the top and its kill height. Kill heights are skewed
-   * toward RAIN_CLEAR_Y (exponent > 1), so most cubes fall nearly the whole
-   * way and the rain stays dense through the descent, thinning only in the
-   * last stretch before it clears at RAIN_CLEAR_Y — leaving the pyramid's air
-   * calm. Higher densityFalloff pulls the thinning band up, clearing sooner.
-   */
-  private sampleKillY(): number {
-    const span = WORLD.TOP_Y - WORLD.RAIN_CLEAR_Y;
-    const biased = Math.pow(Math.random(), 1 + this.densityFalloff * 4);
-    return WORLD.RAIN_CLEAR_Y + biased * span;
+  /** Sends a cube back above the top of the box to fall again — world-space,
+   *  independent of where the camera is. */
+  private respawn(cube: CubeData) {
+    cube.position.set(
+      this.randomX(),
+      WORLD.TOP_Y + Math.random() * 40,
+      this.randomZ(),
+    );
+    cube.velocity.set(0, 0, 0);
+    cube.scale = 0.32 + Math.random() * 0.4;
   }
 
-  private createCube(initial: boolean): CubeData {
-    const killY = this.sampleKillY();
-    return {
-      position: new THREE.Vector3(
-        this.randomX(),
-        // Spread the initial fill over each cube's live range; recycled cubes
-        // drop in from just above the top.
-        initial
-          ? killY + Math.random() * (WORLD.TOP_Y - killY)
-          : WORLD.TOP_Y + Math.random() * 60,
-        this.randomZ(),
-      ),
-
+  private createCube(): CubeData {
+    const cube: CubeData = {
+      position: new THREE.Vector3(),
       velocity: new THREE.Vector3(),
       rotation: new THREE.Euler(
         Math.random() * Math.PI,
@@ -131,40 +118,31 @@ export class CubeField implements Updatable {
         (Math.random() - 0.5) * 0.6,
         (Math.random() - 0.5) * 0.6,
       ),
-
-      scale: 0.55 + Math.random() * 0.75,
-      killY,
+      scale: 0.32 + Math.random() * 0.4,
       parked: false,
     };
-  }
-
-  /** Sends a cube back to the top with a fresh column and kill height. */
-  private recycle(cube: CubeData) {
-    cube.killY = this.sampleKillY();
-    cube.position.set(
-      this.randomX(),
-      WORLD.TOP_Y + Math.random() * 60,
-      this.randomZ(),
-    );
-    cube.velocity.set(0, 0, 0);
-    cube.scale = 0.55 + Math.random() * 0.75;
+    this.respawn(cube);
+    // Spread the initial fill across the whole fall so some are already in view.
+    cube.position.y =
+      WORLD.RAIN_CLEAR_Y + Math.random() * (WORLD.TOP_Y - WORLD.RAIN_CLEAR_Y);
+    return cube;
   }
 
   update(ctx: FrameContext) {
     const time = ctx.elapsed;
-    const camY = ctx.cameraPos.y;
     // Physics tuned in per-frame units at 60fps; scale by real delta so it is
     // frame-rate independent.
     const step = Math.min(ctx.delta, 0.1) * 60;
 
+    // The only scroll-driven behaviour: once the camera starts arcing over the
+    // pyramid at the end, hide the rain so the reveal stays clean. During the
+    // whole descent the cubes fall in world space, untouched by scrolling.
+    const raining = ctx.scrollProgress < ctx.splitT - 0.02;
+
     for (let i = 0; i < this.count; i++) {
       const cube = this.cubes[i];
 
-      const active = Math.abs(cube.position.y - camY) < CULL_DISTANCE;
-
-      if (!active) {
-        // Park once (zero scale, no matrix churn) and skip physics until the
-        // camera comes back into range.
+      if (!raining) {
         if (!cube.parked) {
           this.dummy.position.copy(cube.position);
           this.dummy.scale.setScalar(0);
@@ -173,12 +151,6 @@ export class CubeField implements Updatable {
           this.edgeBuffers.write(i, this.dummy);
           cube.parked = true;
         }
-        // Still advance the fall while parked, cheaply, so cubes don't freeze
-        // just off-screen and reappear stalled.
-        cube.velocity.y += this.gravity * step;
-        cube.position.y += cube.velocity.y * step;
-        cube.velocity.y *= this.drag;
-        if (cube.position.y < cube.killY) this.recycle(cube);
         continue;
       }
       cube.parked = false;
@@ -191,8 +163,8 @@ export class CubeField implements Updatable {
       cube.rotation.y += cube.rotationalVelocity.y * 0.01 * step;
       cube.rotation.z += cube.rotationalVelocity.z * 0.01 * step;
 
-      // Wink out above the pyramid and fall again from the top.
-      if (cube.position.y < cube.killY) this.recycle(cube);
+      // Winks out above the pyramid and falls again from the top.
+      if (cube.position.y < WORLD.RAIN_CLEAR_Y) this.respawn(cube);
 
       this.dummy.position.copy(cube.position);
       this.dummy.rotation.copy(cube.rotation);
@@ -255,11 +227,8 @@ export class CubeField implements Updatable {
         .name("edge scale");
     }
 
-    physicsFolder.add(this, "gravity", -0.1, 0, 0.001).name("gravity");
+    physicsFolder.add(this, "gravity", -0.05, 0, 0.0005).name("gravity");
     physicsFolder.add(this, "drag", 0.9, 1, 0.001).name("drag");
-    physicsFolder
-      .add(this, "densityFalloff", 0, 1, 0.01)
-      .name("density falloff");
   }
 
   dispose() {

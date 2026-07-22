@@ -13,6 +13,7 @@ import { Sizes } from "../interactions/sizes";
 
 import { CubeField } from "../graphics/falling-cube";
 import { Pyramid } from "../graphics/pyramid";
+import { CornerCube } from "../graphics/corner-cube";
 import { DebugWorld } from "./debugger";
 import type { FrameContext, Updatable } from "./frame-context";
 import { LightShafts } from "../graphics/light-shaft";
@@ -34,6 +35,7 @@ export class Experience {
   cursorLight: CursorLight;
   cubes: CubeField;
   pyramid: Pyramid;
+  cornerCube: CornerCube;
   lighting: LightingSystem;
   shafts: LightShafts;
   post: PostProcessing;
@@ -126,6 +128,7 @@ export class Experience {
     this.cubes = new CubeField(this.scene, this.gui);
     // Shares the cube field's glass material so one GUI folder tunes both.
     this.pyramid = new Pyramid(this.scene, this.cubes.material, this.gui);
+    this.cornerCube = new CornerCube(this.camera.camera, this.gui);
     this.shafts = new LightShafts(this.scene, 12, this.gui);
     this.post = new PostProcessing(
       this.renderer.renderer,
@@ -152,6 +155,7 @@ export class Experience {
     this.register(this.cursorLight);
     this.register(this.cubes);
     this.register(this.pyramid);
+    this.register(this.cornerCube);
     this.register(this.shafts);
 
     this.setupScene();

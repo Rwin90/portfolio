@@ -44,7 +44,7 @@ export type EdgeOptions = {
 };
 
 export const EDGE_INNER: EdgeOptions = {
-  color: "#5f4cd7",
+  color: "#eceafa",
   baseGlow: 0.45,
   pulseStrength: 1.0,
   pulseSpeed: 0.8,
@@ -52,7 +52,7 @@ export const EDGE_INNER: EdgeOptions = {
 };
 
 export const EDGE_OUTER: EdgeOptions = {
-  color: "#2c038b",
+  color: "#d5d5d5",
   baseGlow: 1.55,
   pulseStrength: 1.2,
   pulseSpeed: 0.8,

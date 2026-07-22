@@ -13,8 +13,8 @@ export class BackgroundPlane {
     const geometry = new THREE.PlaneGeometry(this.width, this.height);
 
     const params = {
-      topColor: "#270d63",
-      bottomColor: "#160134",
+      topColor: "#140042",
+      bottomColor: "#0d041b",
       width: this.width,
       height: this.height,
     };
@@ -149,7 +149,13 @@ export class BackgroundPlane {
       });
 
       folder
-        .add(this.material.uniforms.uAtmosphereSoftness, "value", 0.001, 0.2, 0.001)
+        .add(
+          this.material.uniforms.uAtmosphereSoftness,
+          "value",
+          0.001,
+          0.2,
+          0.001,
+        )
         .name("glow softness");
 
       folder
