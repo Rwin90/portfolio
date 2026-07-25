@@ -23,10 +23,12 @@ export const WORLD = {
   TOP_Y: 320,
   HEIGHT: 320,
 
-  // Depth of the box, along Z. The camera looks toward BACK_Z.
-  BACK_Z: -45,
-  FRONT_Z: 15,
-  DEPTH: 60,
+  // Depth of the box, along Z. The camera looks toward BACK_Z. Pushed back
+  // from -45 to sit the wall farther from the camera, with more depth for the
+  // rain to fall through.
+  BACK_Z: -62,
+  FRONT_Z: 20,
+  DEPTH: 82,
 
   // Camera rail: it descends Y at this fixed X and Z, facing -Z.
   CAM_X: 0,

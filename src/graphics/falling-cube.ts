@@ -19,7 +19,6 @@ type CubeData = {
   parked: boolean;
 };
 
-
 export class CubeField implements Updatable {
   mesh: THREE.InstancedMesh;
   material: THREE.MeshPhysicalMaterial;
@@ -37,7 +36,7 @@ export class CubeField implements Updatable {
   // TOTAL, not what's on screen. At any scroll position only a couple sit in
   // the ~40-unit visible band. Lower this for fewer, raise for more.
   count = 16;
-  gravity = -0.001;
+  gravity = -0.0015;
   drag = 0.99;
 
   constructor(scene: THREE.Scene, gui?: Gui) {

@@ -83,6 +83,10 @@ export class Pyramid implements Updatable {
     );
     this.shellInner.frustumCulled = false;
     this.shellOuter.frustumCulled = false;
+    this.shellInner.position.y =
+      this.shellOuter.position.y =
+      this.mesh.position.y =
+        20;
     scene.add(this.shellInner, this.shellOuter);
 
     edgeSource.dispose();
@@ -96,7 +100,11 @@ export class Pyramid implements Updatable {
       folder
         .add(this.mesh.position, "y", -20, 20, 0.5)
         .name("lift")
-        .onChange(() => (this.shellInner.position.y = this.shellOuter.position.y = this.mesh.position.y));
+        .onChange(
+          () =>
+            (this.shellInner.position.y = this.shellOuter.position.y =
+              this.mesh.position.y),
+        );
     }
   }
 
