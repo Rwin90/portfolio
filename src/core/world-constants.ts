@@ -24,11 +24,11 @@ export const WORLD = {
   HEIGHT: 320,
 
   // Depth of the box, along Z. The camera looks toward BACK_Z. Pushed back
-  // from -45 to sit the wall farther from the camera, with more depth for the
-  // rain to fall through.
-  BACK_Z: -62,
+  // from -62 to sit the wall farther from the camera, with more depth for the
+  // rain to fall through and the pyramid to sit farther away.
+  BACK_Z: -110,
   FRONT_Z: 20,
-  DEPTH: 82,
+  DEPTH: 130,
 
   // Camera rail: it descends Y at this fixed X and Z, facing -Z.
   CAM_X: 0,
@@ -37,7 +37,7 @@ export const WORLD = {
   CAM_Y_END: 40,
 
   // The pyramid sits on the floor at the bottom, revealed by the top-down arc.
-  PYRAMID: { x: 0, z: -25 },
+  PYRAMID: { x: 0, z: -55 },
 
   // Cubes rain down and wink out above this height, keeping the pyramid clear.
   RAIN_CLEAR_Y: 50,

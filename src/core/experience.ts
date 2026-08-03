@@ -156,7 +156,7 @@ export class Experience {
     this.register(this.cubes);
     this.register(this.pyramid);
     this.register(this.cornerCube);
-    this.register(this.shafts);
+    // this.register(this.shafts);
 
     this.setupScene();
     this.setupDebugReadout();
@@ -201,7 +201,9 @@ export class Experience {
     const now = performance.now();
     this.frames++;
     if (now - this.lastFpsAt >= 500) {
-      this.readout.fps = Math.round((this.frames * 1000) / (now - this.lastFpsAt));
+      this.readout.fps = Math.round(
+        (this.frames * 1000) / (now - this.lastFpsAt),
+      );
       this.frames = 0;
       this.lastFpsAt = now;
     }
@@ -210,7 +212,11 @@ export class Experience {
   setupScene() {
     // Top of the camera rail: facing the back wall, at the top of the box.
     // The scroll path takes over from here.
-    this.camera.camera.position.set(WORLD.CAM_X, WORLD.CAM_Y_START, WORLD.CAM_Z);
+    this.camera.camera.position.set(
+      WORLD.CAM_X,
+      WORLD.CAM_Y_START,
+      WORLD.CAM_Z,
+    );
     this.camera.camera.lookAt(WORLD.CAM_X, WORLD.CAM_Y_START, WORLD.BACK_Z);
 
     this.debug?.addOrbit(this.camera.camera, this.renderer.renderer.domElement);

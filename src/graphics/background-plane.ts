@@ -2,12 +2,19 @@ import * as THREE from "three";
 import type { Gui } from "../core/gui";
 import { WORLD } from "../core/world-constants";
 
+// How much farther behind the box's nominal back wall (WORLD.BACK_Z) the
+// visual backdrop sits. Pushed back so it reads as distant atmosphere rather
+// than a wall right behind the rain/pyramid.
+const BG_Z_OFFSET = 80;
+
 export class BackgroundPlane {
   readonly material: THREE.ShaderMaterial;
-  private height: number = WORLD.HEIGHT;
+  private height: number = WORLD.HEIGHT * 1.5;
   // Wider than the box so the wall's side edges sit outside the frustum and
-  // never show as dark vertical seams.
-  private width: number = WORLD.WIDTH * 2;
+  // never show as dark vertical seams — sized for its distance (BACK_Z minus
+  // the extra offset below), not just the box width, so it still fills the
+  // frame despite sitting much farther back.
+  private width: number = WORLD.WIDTH * 4;
   mesh: THREE.Mesh;
   constructor(scene: THREE.Scene, gui?: Gui) {
     const geometry = new THREE.PlaneGeometry(this.width, this.height);
@@ -126,8 +133,9 @@ export class BackgroundPlane {
     //   metalness: 0.05, // almost non-metal
     // });
     this.mesh = new THREE.Mesh(geometry, this.material);
-    // Centered on the box height, standing at the back.
-    this.mesh.position.set(0, WORLD.HEIGHT / 2, WORLD.BACK_Z);
+    // Centered on the box height, standing farther back than the box's own
+    // back wall so it reads as a distant backdrop.
+    this.mesh.position.set(0, WORLD.HEIGHT / 2, WORLD.BACK_Z - BG_Z_OFFSET);
     this.mesh.renderOrder = -1;
 
     scene.add(this.mesh);
@@ -137,7 +145,7 @@ export class BackgroundPlane {
 
       folder.add(this.mesh.position, "x", -100, 100, 1).name("posX");
       folder.add(this.mesh.position, "y", 0, 400, 1).name("posY");
-      folder.add(this.mesh.position, "z", -150, 50, 1).name("posZ");
+      folder.add(this.mesh.position, "z", -250, 50, 1).name("posZ");
       folder.add(params, "width", 10, 200, 5).onChange((v: number) => {
         this.width = v;
         this.updateGeometry();
