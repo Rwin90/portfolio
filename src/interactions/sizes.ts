@@ -1,6 +1,6 @@
 import { EventEmitter } from "../utils/event-emitter";
 
-const MAX_PIXEL_RATIO = 1.5;
+const MAX_PIXEL_RATIO = 1.75;
 const DEBOUNCE_MS = 150;
 
 /**

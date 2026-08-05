@@ -9,6 +9,8 @@ export class UIAnimations {
     this.animateHero();
 
     this.animateExperience();
+
+    this.animateReveals();
   }
 
   //
@@ -21,7 +23,7 @@ export class UIAnimations {
       },
     });
 
-    tl.from(".hero__eyebrow", {
+    tl.from(".hero .eyebrow", {
       y: 56,
       opacity: 0,
       duration: 0.35,
@@ -39,24 +41,33 @@ export class UIAnimations {
       )
 
       .from(
-        ".hero__description",
+        ".hero__role",
         {
           y: 40,
           opacity: 0,
-          stagger: 0.15,
-          duration: 1,
+          duration: 0.7,
         },
-        "-=0.9",
+        "-=0.35",
       )
 
       .from(
-        ".hero__actions",
+        ".hero__description.sub",
         {
-          y: 30,
+          y: 40,
           opacity: 0,
-          duration: 0.8,
+          duration: 0.7,
         },
-        "-=0.7",
+        "-=0.55",
+      )
+
+      .from(
+        ".scroll-cue",
+        {
+          y: 20,
+          opacity: 0,
+          duration: 0.6,
+        },
+        "-=0.4",
       );
 
     //
@@ -187,20 +198,27 @@ export class UIAnimations {
           "-=0.5",
         );
     });
+  }
 
-    //
-    // SUBTLE TIMELINE FLOAT
-    //
-    gsap.to(".timeline", {
-      y: 20,
-
-      duration: 5,
-
-      repeat: -1,
-
-      yoyo: true,
-
-      ease: "sine.inOut",
+  //
+  // GENERIC SCROLL REVEALS
+  //
+  // Every [data-reveal] element that doesn't already get a bespoke timeline
+  // above (about, skills, interludes, work rows, testimonials, contact) just
+  // fades and lifts in once it enters the viewport.
+  //
+  animateReveals() {
+    gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((el) => {
+      gsap.to(el, {
+        opacity: 1,
+        y: 0,
+        duration: 0.9,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: el,
+          start: "top 85%",
+        },
+      });
     });
   }
 }

@@ -3,30 +3,152 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cinematic Portfolio</title>
+    <title>Arwin — Senior Front-end Engineer &amp; Creative Developer</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin="anonymous"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Critical, inlined so the dark cover paints on first frame — before
+         the JS bundle or the external stylesheet have even loaded, so there
+         is no flash of unstyled content. -->
+    <style>
+      html,
+      body {
+        background: #04060c;
+      }
+      #loading-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        background: #04060c;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
   </head>
 
   <body>
-    <canvas id="webgl" class="webgl"></canvas>
+    <div id="loading-screen" class="loading-screen"></div>
 
-    <main>
+    <canvas id="webgl" class="webgl"></canvas>
+    <div class="bg-overlay"></div>
+    <div class="cursor-dot"><span class="cursor-dot__inner"></span></div>
+
+    <nav class="nav">
+      <a href="#top" class="nav__brand">ARWIN</a>
+      <div class="nav__links">
+        <a href="#about">ABOUT</a>
+        <a href="#work">WORK</a>
+        <a href="#contact">CONTACT</a>
+      </div>
+    </nav>
+
+    <main id="top">
       <section class="hero">
         <div class="hero__content">
-          <p class="hero__eyebrow">HEY. I'm</p>
+          <div class="eyebrow">
+            <span class="eyebrow__rule"></span>
+            <span>HEY, I’M</span>
+          </div>
 
           <h1 class="hero__title">Arwin</h1>
 
-          <p class="hero__description">
-            Frontend Engineer &nbsp;&nbsp; & Creative developer
+          <p class="hero__role">
+            SENIOR FRONT-END ENGINEER <span class="accent">&amp;</span>
+            CREATIVE DEVELOPER &nbsp;→
           </p>
 
           <p class="hero__description sub">
             I build immersive, interactive and performant web experiences with a
-            focus on scalability,creativity and robustness. Need my help? feel
+            focus on scalability, creativity and robustness. Need my help? Feel
             free to get in touch!
           </p>
-          <div class="hero__actions">
-            <button class="magnetic-btn">View My Work</button>
+        </div>
+
+        <div class="scroll-cue">
+          <span class="scroll-cue__arrow">↓</span>
+          <span>SCROLL TO DESCEND</span>
+        </div>
+      </section>
+
+      <!-- about -->
+      <section id="about" class="about">
+        <div class="about__inner" data-reveal>
+          <div class="portrait">
+            <div class="portrait__frame"></div>
+            <div class="portrait__placeholder">Drop your photo here</div>
+            <div class="portrait__grid"></div>
+            <div class="portrait__tint"></div>
+            <div class="portrait__corner portrait__corner--bl"></div>
+            <div class="portrait__corner portrait__corner--tr"></div>
+          </div>
+
+          <div class="about__copy">
+            <div class="eyebrow">
+              <span class="eyebrow__rule"></span>
+              <span>ABOUT ME</span>
+            </div>
+
+            <h2 class="section-heading">
+              BUILDING THE WEB, <span class="accent">BLOCK BY BLOCK</span>
+            </h2>
+
+            <p>
+              Like a well-played game of Tetris, great interfaces are about how
+              the pieces fit together — components that click into place,
+              layouts without gaps, systems that keep flowing under pressure.
+            </p>
+            <p>
+              For the past years I’ve shipped design systems, 3D product
+              experiences and high-traffic apps, always chasing the same thing:
+              interfaces that feel effortless.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- skills -->
+      <section class="skills">
+        <div data-reveal>
+          <div class="eyebrow">
+            <span class="eyebrow__rule"></span>
+            <span>TECH STACK</span>
+          </div>
+
+          <h2 class="section-heading">
+            THE <span class="accent">PIECES</span> I PLAY WITH
+          </h2>
+
+          <div class="skills__list">
+            <span>JavaScript / TypeScript</span>
+            <span>React</span>
+            <span>Next.js</span>
+            <span>Angular</span>
+            <span>Vue</span>
+            <span>Node.js / Express</span>
+            <span>Rest API / GraphQL </span>
+            <span>Three.js / WebGL</span>
+            <span>D3</span>
+            <span>Canvas / SVG</span>
+            <span>Leaflet / DeckGL</span>
+            <span>Redux </span>
+            <span>RxJS</span>
+            <span>Jest / Cypress</span>
+            <span>Tailwind CSS</span>
+            <span>Material-UI</span>
+            <span>Webpack / Vite</span>
+            <span>PostgreSQL / MongoDB</span>
+            <span>Git</span>
+            <span>WebSockets / Server-Sent Events</span>
           </div>
         </div>
       </section>
@@ -34,144 +156,466 @@
       <!-- experience -->
       <section class="experience">
         <div class="xp-container">
-          <!-- LEFT SIDE -->
           <div class="experience-left">
-            <h2>MY<br />EXPERIENCE</h2>
-
-            <p>
-              A journey through the places I’ve contributed, the problems I’ve
-              solved and the skills I’ve sharpened.
-            </p>
-
-            <button class="magnetic-btn">RESUME</button>
+            <div class="eyebrow">
+              <span class="eyebrow__rule"></span>
+              <span>EXPERIENCE</span>
+            </div>
+            <h2 class="section-heading">
+              WHERE I’VE <span class="accent">STACKED UP</span>
+            </h2>
           </div>
 
-          <!-- RIGHT SIDE -->
           <div class="timeline">
             <div class="timeline-line"></div>
 
-            <!-- ITEM -->
             <div class="timeline-item">
               <div class="timeline-dot"></div>
-
               <div class="timeline-content">
-                <span class="date">2023 — PRESENT</span>
-                <h3>SENIOR FRONTEND ENGINEER</h3>
-                <span class="company">Acme Inc.</span>
-
+                <span class="date">2025 — NOW</span>
+                <h3>Senior Front-end Engineer</h3>
+                <span class="company">NEOR — TEHRAN</span>
                 <p>
-                  Leading the frontend architecture: building scalable design
-                  systems and high-performance web applications.
+                  Leading the front-end team building a unified data platform
+                  from scratch — Apache NiFi, OpenMetadata, Apache Ranger and a
+                  dynamic BI dashboard builder with real-time visualizations, on
+                  a component-driven design system.
                 </p>
-
-                <div class="tags">
-                  <span>TypeScript</span>
-                  <span>Three.js</span>
-                  <span>GSAP</span>
-                  <span>React</span>
-                </div>
               </div>
             </div>
 
-            <!-- ITEM -->
             <div class="timeline-item">
               <div class="timeline-dot"></div>
+              <div class="timeline-content">
+                <span class="date">2024 — 2025</span>
+                <h3>Senior Front-end Engineer</h3>
+                <span class="company">MASTOO — REMOTE</span>
+                <p>
+                  Built the company’s core social advertising product from the
+                  ground up, plus the Next.js landing site and a scalable React
+                  admin dashboard.
+                </p>
+              </div>
+            </div>
 
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-content">
+                <span class="date">2023</span>
+                <h3>Senior Front-end Engineer</h3>
+                <span class="company">PROPERTYSCOUT — BANGKOK</span>
+                <p>
+                  Shipped 10+ features on the Next.js real estate app with a 25%
+                  load-time improvement; hardened the internal CRM with
+                  TypeScript and performance fixes.
+                </p>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
               <div class="timeline-content">
                 <span class="date">2021 — 2023</span>
-                <h3>FRONTEND ENGINEER</h3>
-                <span class="company">Studio XYZ</span>
-
+                <h3>Senior Front-end Engineer</h3>
+                <span class="company">SAHAB — TEHRAN</span>
                 <p>
-                  Crafted interactive experiences and microsites for global
-                  brands with strong focus on motion and performance.
+                  Directed and mentored a team of 6 front-end developers; built
+                  data-heavy visualizations with Leaflet, DeckGL, D3 and Konva,
+                  backed by Jest and Cypress coverage.
                 </p>
-
-                <div class="tags">
-                  <span>JavaScript</span>
-                  <span>GSAP</span>
-                  <span>Canvas</span>
-                  <span>Vite</span>
-                </div>
               </div>
             </div>
 
-            <!-- ITEM -->
             <div class="timeline-item">
               <div class="timeline-dot"></div>
-
               <div class="timeline-content">
-                <span class="date">2019 — 2021</span>
-                <h3>WEB DEVELOPER</h3>
-                <span class="company">Digital House</span>
-
+                <span class="date">2016 — 2021</span>
+                <h3>Front-end Engineer</h3>
+                <span class="company">CLARITY · ZAGROT</span>
                 <p>
-                  Developed responsive websites and web applications with a
-                  focus on UI/UX and clean code.
+                  Earlier roles building web products across Tehran and
+                  Mazandaran.
                 </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-                <div class="tags">
-                  <span>HTML</span>
-                  <span>CSS</span>
-                  <span>JavaScript</span>
-                  <span>jQuery</span>
+      <!-- work intro -->
+      <section id="work" class="work-intro">
+        <div data-reveal>
+          <div class="eyebrow">
+            <span class="eyebrow__rule"></span>
+            <span>SELECTED WORK</span>
+          </div>
+
+          <h2 class="section-heading section-heading--xl">
+            RECENT&nbsp;<span class="accent">PROJECTS</span>
+          </h2>
+
+          <p class="work-intro__hint">LAYOUT A — TYPE INDEX.</p>
+        </div>
+      </section>
+
+      <!-- work index -->
+      <section class="work-index">
+        <div class="work-index__list">
+          <article class="work-row" data-reveal>
+            <div class="work-row__num">01<br /><span>2026</span></div>
+            <div class="work-row__body">
+              <h3>IMMERSIVE PRODUCT CONFIGURATOR</h3>
+              <p>
+                A real-time 3D configurator letting customers build and
+                customize products in the browser — 60fps on mid-range laptops,
+                with a fully accessible 2D fallback.
+              </p>
+              <div class="tags">
+                <span>Three.js</span>
+                <span>React</span>
+                <span>GSAP</span>
+              </div>
+            </div>
+            <div class="work-row__thumb">
+              <div class="thumb-placeholder">Project 1 image</div>
+            </div>
+          </article>
+
+          <article class="work-row" data-reveal>
+            <div class="work-row__num">02<br /><span>2025</span></div>
+            <div class="work-row__body">
+              <h3>DESIGN SYSTEM AT SCALE</h3>
+              <p>
+                Component library and token pipeline powering 8 product teams —
+                themable, tested, documented, and adopted without a single
+                migration sprint.
+              </p>
+              <div class="tags">
+                <span>TypeScript</span>
+                <span>React</span>
+                <span>Storybook</span>
+              </div>
+            </div>
+            <div class="work-row__thumb">
+              <div class="thumb-placeholder">Project 2 image</div>
+            </div>
+          </article>
+
+          <article class="work-row" data-reveal>
+            <div class="work-row__num">03<br /><span>2024</span></div>
+            <div class="work-row__body">
+              <h3>REALTIME ANALYTICS DASHBOARD</h3>
+              <p>
+                Streaming dashboards rendering 100k+ datapoints with
+                canvas-based charts, virtualized tables and a sub-second cold
+                load.
+              </p>
+              <div class="tags">
+                <span>Next.js</span>
+                <span>Canvas</span>
+                <span>WebSockets</span>
+              </div>
+            </div>
+            <div class="work-row__thumb">
+              <div class="thumb-placeholder">Project 3 image</div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- testimonials -->
+      <section class="testimonials">
+        <div class="testimonials__heading" data-reveal>
+          <div class="eyebrow">
+            <span class="eyebrow__rule"></span>
+            <span>RECOMMENDATIONS</span>
+          </div>
+          <h2 class="section-heading">
+            WHAT IT’S LIKE TO <span class="accent">PLAY CO-OP</span>
+          </h2>
+        </div>
+
+        <div class="testimonials__marquee">
+          <div class="testimonials__track">
+            <div class="quote-card">
+              <div class="quote-card__meta">
+                <div class="quote-card__mark">“</div>
+                <div class="quote-card__attr">
+                  <div class="name">Ali Lotfi</div>
+                  <div class="role">SOFTWARE ENGINEERING COACH</div>
                 </div>
+              </div>
+              <div class="quote-card__body">
+                <p>
+                  I have been very fortunate to have the opportunity to work
+                  with Arwin. Working alongside him is always enjoyable, and we
+                  can solve complex problems together quickly and efficiently.
+                  Arwin is a friendly, highly motivated, and professional
+                  individual whose positive energy and great spirit consistently
+                  inspire the team. He is not only technically skilled but also
+                  excels in problem-solving, effective communication, and
+                  teamwork. Arwin is always ready to share his knowledge and
+                  guide others, making working with him both educational and
+                  inspiring. Undoubtedly, his presence in any team is
+                  invaluable, capable of delivering excellent results and
+                  fostering a positive, energetic environment.
+                </p>
               </div>
             </div>
 
+            <div class="quote-card">
+              <div class="quote-card__meta">
+                <div class="quote-card__mark">“</div>
+                <div class="quote-card__attr">
+                  <div class="name">Nabil Karim</div>
+                  <div class="role">TECHNICAL LEAD · FULL STACK · MENTOR</div>
+                </div>
+              </div>
+              <div class="quote-card__body">
+                <p>
+                  I've had the distinct pleasure of working with Arwin for close
+                  to a year, and throughout this period, his proficiency and
+                  commitment to the frontend applications have been excellent.
+                </p>
+                <p>
+                  Arwin possesses a profound understanding of frontend
+                  mechanisms and intricacies, a fact that is evident in the
+                  technical implementations he's overseen. But what truly sets
+                  him apart is his ability to couple this technical know-how
+                  with his soft skills, especially during team meetings. His
+                  insights and suggestions have consistently proven to be
+                  invaluable, significantly improving our team's collaboration
+                  and decision-making process.
+                </p>
+                <p>
+                  His thirst for knowledge is commendable. A testament to his
+                  prowess is his remarkable contribution in refactoring a legacy
+                  codebase which made the entire application robust, agile, and
+                  efficient.
+                </p>
+                <p>
+                  I wholeheartedly recommend Arwin for any frontend development
+                  role or team-centric position. His blend of technical
+                  expertise, eagerness to learn, and collaborative spirit would
+                  be an asset to any organization.
+                </p>
+              </div>
+            </div>
+
+            <div class="quote-card">
+              <div class="quote-card__meta">
+                <div class="quote-card__mark">“</div>
+                <div class="quote-card__attr">
+                  <div class="name">Mohammad Matinaghdam</div>
+                  <div class="role">FRONTEND ENGINEER — UNIVRSES</div>
+                </div>
+              </div>
+              <div class="quote-card__body">
+                <p>
+                  I know Arwin as a friend and colleague. He is a hard-working
+                  individual who knows how to get the job done effectively. He
+                  works well as a part of a team and can function as a leader
+                  when required. He has always exhibited superior communication
+                  skills and gets along well with staff and supervisors. He is
+                  highly respected by colleagues and customers.
+                </p>
+                <p>
+                  Due to his great attitude, dedication and excellent potential,
+                  I would strongly recommend him as professional software
+                  engineer.
+                </p>
+              </div>
+            </div>
+
+            <div class="quote-card">
+              <div class="quote-card__meta">
+                <div class="quote-card__mark">“</div>
+                <div class="quote-card__attr">
+                  <div class="name">Reza Hashemi</div>
+                  <div class="role">SENIOR PRODUCT MANAGER — SNAPP!</div>
+                </div>
+              </div>
+              <div class="quote-card__body">
+                <p>
+                  I had the privilege of working with Arwin in OSS team for more
+                  than 3 years at Clarity Global. I admire his passion for work
+                  and his problem solving, broad-minded and forward thinking
+                  very much. As I have seen him from very close, I know Arwin
+                  can learn things very well and adjust quickly to new
+                  environment. As I remember, he was a very productive person
+                  and is a multi-skilled person with vast knowledge in web
+                  development.
+                </p>
+                <p>
+                  Arwin is one of the most valuable people I have ever met. Both
+                  smart and professional. Experienced, and intelligent person.
+                  Highly recommended.
+                </p>
+              </div>
+            </div>
+
+            <!-- duplicate set, hidden from assistive tech, so the track can
+                 loop seamlessly at translateX(-50%) -->
+            <div class="quote-card" aria-hidden="true">
+              <div class="quote-card__meta">
+                <div class="quote-card__mark">“</div>
+                <div class="quote-card__attr">
+                  <div class="name">Ali Lotfi</div>
+                  <div class="role">SOFTWARE ENGINEERING COACH</div>
+                </div>
+              </div>
+              <div class="quote-card__body">
+                <p>
+                  I have been very fortunate to have the opportunity to work
+                  with Arwin. Working alongside him is always enjoyable, and we
+                  can solve complex problems together quickly and efficiently.
+                  Arwin is a friendly, highly motivated, and professional
+                  individual whose positive energy and great spirit consistently
+                  inspire the team. He is not only technically skilled but also
+                  excels in problem-solving, effective communication, and
+                  teamwork. Arwin is always ready to share his knowledge and
+                  guide others, making working with him both educational and
+                  inspiring. Undoubtedly, his presence in any team is
+                  invaluable, capable of delivering excellent results and
+                  fostering a positive, energetic environment.
+                </p>
+              </div>
+            </div>
+
+            <div class="quote-card" aria-hidden="true">
+              <div class="quote-card__meta">
+                <div class="quote-card__mark">“</div>
+                <div class="quote-card__attr">
+                  <div class="name">Nabil Karim</div>
+                  <div class="role">TECHNICAL LEAD · FULL STACK · MENTOR</div>
+                </div>
+              </div>
+              <div class="quote-card__body">
+                <p>
+                  I've had the distinct pleasure of working with Arwin for close
+                  to a year, and throughout this period, his proficiency and
+                  commitment to the frontend applications have been excellent.
+                </p>
+                <p>
+                  Arwin possesses a profound understanding of frontend
+                  mechanisms and intricacies, a fact that is evident in the
+                  technical implementations he's overseen. But what truly sets
+                  him apart is his ability to couple this technical know-how
+                  with his soft skills, especially during team meetings. His
+                  insights and suggestions have consistently proven to be
+                  invaluable, significantly improving our team's collaboration
+                  and decision-making process.
+                </p>
+                <p>
+                  His thirst for knowledge is commendable. A testament to his
+                  prowess is his remarkable contribution in refactoring a legacy
+                  codebase which made the entire application robust, agile, and
+                  efficient.
+                </p>
+                <p>
+                  I wholeheartedly recommend Arwin for any frontend development
+                  role or team-centric position. His blend of technical
+                  expertise, eagerness to learn, and collaborative spirit would
+                  be an asset to any organization.
+                </p>
+              </div>
+            </div>
+
+            <div class="quote-card" aria-hidden="true">
+              <div class="quote-card__meta">
+                <div class="quote-card__mark">“</div>
+                <div class="quote-card__attr">
+                  <div class="name">Mohammad Matinaghdam</div>
+                  <div class="role">FRONTEND ENGINEER — UNIVRSES</div>
+                </div>
+              </div>
+              <div class="quote-card__body">
+                <p>
+                  I know Arwin as a friend and colleague. He is a hard-working
+                  individual who knows how to get the job done effectively. He
+                  works well as a part of a team and can function as a leader
+                  when required. He has always exhibited superior communication
+                  skills and gets along well with staff and supervisors. He is
+                  highly respected by colleagues and customers.
+                </p>
+                <p>
+                  Due to his great attitude, dedication and excellent potential,
+                  I would strongly recommend him as professional software
+                  engineer.
+                </p>
+              </div>
+            </div>
+
+            <div class="quote-card" aria-hidden="true">
+              <div class="quote-card__meta">
+                <div class="quote-card__mark">“</div>
+                <div class="quote-card__attr">
+                  <div class="name">Reza Hashemi</div>
+                  <div class="role">SENIOR PRODUCT MANAGER — SNAPP!</div>
+                </div>
+              </div>
+              <div class="quote-card__body">
+                <p>
+                  I had the privilege of working with Arwin in OSS team for more
+                  than 3 years at Clarity Global. I admire his passion for work
+                  and his problem solving, broad-minded and forward thinking
+                  very much. As I have seen him from very close, I know Arwin
+                  can learn things very well and adjust quickly to new
+                  environment. As I remember, he was a very productive person
+                  and is a multi-skilled person with vast knowledge in web
+                  development.
+                </p>
+                <p>
+                  Arwin is one of the most valuable people I have ever met. Both
+                  smart and professional. Experienced, and intelligent person.
+                  Highly recommended.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- work -->
-      <section class="work">
-        <div class="work__inner">
-          <h2 class="work__heading">SELECTED<br />WORK</h2>
-
-          <div class="work__grid">
-            <article class="work-item">
-              <span class="work-item__index">01</span>
-              <h3>Project One</h3>
-              <p>
-                A short line about what it was, what you built and why it
-                mattered.
-              </p>
-            </article>
-
-            <article class="work-item">
-              <span class="work-item__index">02</span>
-              <h3>Project Two</h3>
-              <p>
-                A short line about what it was, what you built and why it
-                mattered.
-              </p>
-            </article>
-
-            <article class="work-item">
-              <span class="work-item__index">03</span>
-              <h3>Project Three</h3>
-              <p>
-                A short line about what it was, what you built and why it
-                mattered.
-              </p>
-            </article>
+      <!-- contact -->
+      <section id="contact" class="contact">
+        <div class="contact__inner" data-reveal>
+          <div class="eyebrow">
+            <span class="eyebrow__rule"></span>
+            <span>LET’S CONNECT</span>
           </div>
-        </div>
-      </section>
 
-      <!-- outro: the camera arcs to a top-down view across this section -->
-      <section class="outro">
-        <div class="outro__inner">
-          <h2 class="outro__heading">LET'S BUILD<br />SOMETHING</h2>
+          <h2 class="section-heading section-heading--xl">
+            GET IN <span class="accent">TOUCH</span>
+          </h2>
 
-          <p class="outro__text">
-            Available for freelance and full-time work.
+          <p class="contact__text">
+            I’m currently available for freelance projects, collaborations and
+            full-time opportunities. Let’s create something exceptional
+            together.
           </p>
 
-          <div class="outro__actions">
-            <button class="magnetic-btn">GET IN TOUCH</button>
+          <a href="mailto:rwin.ra68@gmail.com" class="contact__email"
+            >rwin.ra68@gmail.com &nbsp;→</a
+          >
+
+          <div class="contact__social">
+            <span>FIND ME ON</span>
+            <a
+              href="https://linkedin.com/in/rwin-ranjbar/"
+              target="_blank"
+              rel="noopener"
+              >LINKEDIN</a
+            >
+            <a href="https://github.com" target="_blank" rel="noopener"
+              >GITHUB</a
+            >
           </div>
         </div>
+
+        <footer class="footer">
+          <span>© 2026 ARWIN RANJBAR. ALL RIGHTS RESERVED.</span>
+          <span>BUILT WITH THREE.JS · NO BLOCKS WERE HARMED</span>
+        </footer>
       </section>
     </main>
 

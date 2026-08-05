@@ -1,81 +1,120 @@
 import { gsap } from "gsap";
 
+const GRID_COLS = 4;
+const GRID_ROWS = 3;
+const HOLD_MS = 450;
+
+// Same tetromino coordinate sets as the 3D scene's rain pieces
+// (src/core/tetris-world.ts), so the loader reads as the same "block".
+const SHAPES: [number, number][][] = [
+  [
+    [0, 0],
+    [1, 0],
+    [2, 0],
+    [3, 0],
+  ],
+  [
+    [0, 0],
+    [1, 0],
+    [0, 1],
+    [1, 1],
+  ],
+  [
+    [0, 0],
+    [1, 0],
+    [2, 0],
+    [1, 1],
+  ],
+  [
+    [0, 0],
+    [0, 1],
+    [0, 2],
+    [1, 0],
+  ],
+  [
+    [1, 0],
+    [2, 0],
+    [0, 1],
+    [1, 1],
+  ],
+  [
+    [0, 0],
+    [1, 0],
+    [1, 1],
+    [2, 1],
+  ],
+];
+
 export class LoadingScreen {
   private container: HTMLElement;
-  private logo: HTMLElement;
+  private cells: HTMLElement[] = [];
 
+  private shapeIndex = 0;
+  private loopHandle?: number;
   private ready = false;
 
   constructor() {
-    this.container = document.createElement("div");
-    this.container.className = "loading-screen";
+    const container = document.getElementById("loading-screen");
+    if (!container) throw new Error("Loading screen markup missing");
+    this.container = container;
 
-    // Text mark rather than an image asset — self-contained, on-brand, and
-    // nothing to 404 on.
-    this.logo = document.createElement("div");
-    this.logo.className = "loading-logo";
-    this.logo.textContent = "Arwin";
+    const grid = document.createElement("div");
+    grid.className = "loader-grid";
+    for (let i = 0; i < GRID_COLS * GRID_ROWS; i++) {
+      const cell = document.createElement("div");
+      cell.className = "loader-cell";
+      grid.appendChild(cell);
+      this.cells.push(cell);
+    }
+    this.container.appendChild(grid);
 
-    this.container.appendChild(this.logo);
-    document.body.appendChild(this.container);
-
-    this.animateIntro();
-  }
-
-  animateIntro() {
-    gsap.fromTo(
-      this.logo,
-      { opacity: 0, scale: 0.8, y: 40, filter: "blur(8px)" },
-      {
-        opacity: 1,
-        scale: 1,
-        y: 0,
-        filter: "blur(0px)",
-        duration: 1.6,
-        ease: "power3.out",
-        onComplete: () => this.animatePulse(),
-      },
-    );
-  }
-
-  animatePulse() {
-    gsap.to(this.logo, {
-      scale: 1.06,
-      filter: "drop-shadow(0 0 6px #bcd6ff)",
-      yoyo: true,
-      repeat: -1,
-      duration: 1.8,
-      ease: "sine.inOut",
-    });
-  }
-
-  hide() {
-    gsap.to(this.container, {
+    gsap.from(grid, {
       opacity: 0,
-      duration: 1.2,
-      ease: "power2.inOut",
-      onComplete: () => {
-        this.container.remove();
-      },
+      scale: 0.85,
+      duration: 0.8,
+      ease: "power3.out",
+    });
+
+    // One tetromino at a time, morphing into a random next one (never the
+    // same shape twice in a row), on a loop until the experience is ready —
+    // so the sequence isn't the same fixed pattern on every visit.
+    this.shapeIndex = Math.floor(Math.random() * SHAPES.length);
+    this.showShape(this.shapeIndex);
+    this.loopHandle = window.setInterval(() => {
+      this.shapeIndex = this.nextRandomShapeIndex();
+      this.showShape(this.shapeIndex);
+    }, HOLD_MS);
+  }
+
+  private nextRandomShapeIndex(): number {
+    let next = Math.floor(Math.random() * SHAPES.length);
+    if (next === this.shapeIndex) {
+      next = (next + 1) % SHAPES.length;
+    }
+    return next;
+  }
+
+  private showShape(index: number) {
+    const active = new Set(SHAPES[index].map(([x, y]) => y * GRID_COLS + x));
+    this.cells.forEach((cell, i) => {
+      cell.classList.toggle("is-active", active.has(i));
     });
   }
 
   setProgress(p: number) {
-    // Optionally animate a radial or linear progress bar synced to asset loading.
     if (p >= 1.0 && !this.ready) {
       this.ready = true;
-      this.animateOut();
+      this.hide();
     }
   }
 
-  animateOut() {
-    gsap.to(this.logo, {
-      scale: 0.5,
+  private hide() {
+    clearInterval(this.loopHandle);
+    gsap.to(this.container, {
       opacity: 0,
-      filter: "blur(6px)",
       duration: 1.0,
-      ease: "power4.in",
-      onComplete: () => this.hide(),
+      ease: "power2.inOut",
+      onComplete: () => this.container.remove(),
     });
   }
 }
