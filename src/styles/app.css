@@ -205,7 +205,24 @@ button,
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.3em;
+}
+
+/* mix-blend-mode lives on the text itself, not the whole nav — the logo
+   cube canvas sits alongside it and needs to stay unblended to read crisp. */
+.nav__brand {
   mix-blend-mode: screen;
+}
+
+.nav__logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-cube-canvas {
+  display: block;
+  width: 32px;
+  height: 32px;
 }
 
 .nav__links {
@@ -216,6 +233,7 @@ button,
 .nav__links a {
   color: var(--muted-dim);
   transition: color 0.3s ease;
+  mix-blend-mode: screen;
 }
 
 .nav__links a:hover {

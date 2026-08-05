@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { RendererManager } from "./renderer-manager";
 
 import { TetrisWorld, type CameraPathMode } from "./tetris-world";
-import { CornerCube } from "../graphics/corner-cube";
+import { LogoCube } from "../graphics/logo-cube";
 import { createEnvironmentMap } from "../graphics/createEnviormentMap";
 
 import { ScrollController } from "../interactions/scrollController";
@@ -15,7 +15,7 @@ import { Gui } from "./gui";
 export class Experience {
   renderer: RendererManager;
   world: TetrisWorld;
-  cornerCube: CornerCube;
+  logoCube: LogoCube;
 
   scroll: ScrollController;
   sizes: Sizes;
@@ -56,13 +56,14 @@ export class Experience {
       this.setupGui(this.gui);
     }
 
-    this.cornerCube = new CornerCube(this.world.camera, this.gui);
+    const logoCanvas = document.getElementById("logo-cube") as HTMLCanvasElement;
+    this.logoCube = new LogoCube(logoCanvas);
+    if (this.gui) this.setupLogoCubeGui(this.gui, this.logoCube);
 
     this.ctx = {
       elapsed: 0,
       delta: 0,
       scrollProgress: 0,
-      camera: this.world.camera,
     };
 
     this.animate();
@@ -92,6 +93,13 @@ export class Experience {
       .onChange((value: boolean) => this.world.setAmbientFallEnabled(value));
   }
 
+  private setupLogoCubeGui(gui: Gui, logoCube: LogoCube) {
+    const folder = gui.folder("Logo Cube");
+    folder.add(logoCube, "turns", 0, 6, 0.1).name("turns / scroll");
+    folder.add(logoCube, "smoothing", 0.01, 0.3, 0.005).name("smoothing");
+    folder.add(logoCube, "tiltStrength", 0, 1.5, 0.05).name("mouseX tilt");
+  }
+
   onResize = (width: number, height: number, pixelRatio: number) => {
     this.renderer.resize(width, height, pixelRatio);
     this.world.resize(width, height);
@@ -100,7 +108,7 @@ export class Experience {
   dispose() {
     cancelAnimationFrame(this.frameHandle);
 
-    this.cornerCube.dispose();
+    this.logoCube.dispose();
     this.world.dispose();
     this.scroll.dispose();
     this.sizes.dispose();
@@ -118,13 +126,14 @@ export class Experience {
     ctx.scrollProgress = this.scroll.progress;
 
     this.world.update(ctx.elapsed, ctx.delta);
-    this.cornerCube.update(ctx);
+    this.logoCube.update(ctx.elapsed, ctx.scrollProgress);
 
     // renderer.info.autoReset is false, so the counters have to be reset by
     // hand each frame or they accumulate and read as millions of draw calls.
     this.renderer.renderer.info.reset();
 
     this.world.render();
+    this.logoCube.render();
 
     // First frame is on screen — shaders are compiled, buffers warm. Now it's
     // safe to lift the loading screen without exposing a compile stall.

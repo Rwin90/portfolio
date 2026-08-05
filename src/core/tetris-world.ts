@@ -138,6 +138,9 @@ export class TetrisWorld {
     );
     camera.position.set(0, 60, 26);
     this.camera = camera;
+    // The camera itself must be in the scene graph, or anything parented to
+    // it (the corner cube) never gets traversed by the renderer at all.
+    scene.add(camera);
 
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
