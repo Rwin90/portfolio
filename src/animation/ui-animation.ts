@@ -10,6 +10,8 @@ export class UIAnimations {
 
     this.animateExperience();
 
+    this.animateHeadlines();
+
     this.animateReveals();
   }
 
@@ -201,11 +203,34 @@ export class UIAnimations {
   }
 
   //
+  // SECTION HEADLINES
+  //
+  // Every `.section-heading` (about, skills, experience, work, testimonials,
+  // contact) gets its own heavier lift-and-blur entrance, distinct from the
+  // lighter fade the rest of its section gets from animateReveals() below.
+  //
+  animateHeadlines() {
+    gsap.utils.toArray<HTMLElement>(".section-heading").forEach((heading) => {
+      gsap.from(heading, {
+        y: 46,
+        opacity: 0,
+        filter: "blur(14px)",
+        duration: 0.9,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: heading,
+          start: "top 88%",
+        },
+      });
+    });
+  }
+
+  //
   // GENERIC SCROLL REVEALS
   //
   // Every [data-reveal] element that doesn't already get a bespoke timeline
-  // above (about, skills, interludes, work rows, testimonials, contact) just
-  // fades and lifts in once it enters the viewport.
+  // above (about, skills, work rows, testimonials, contact) just fades and
+  // lifts in once it enters the viewport.
   //
   animateReveals() {
     gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((el) => {

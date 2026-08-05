@@ -213,9 +213,16 @@ export class TetrisWorld {
     scene.add(world);
     const levels = [50, 36, 22];
     levels.forEach((h) => {
+      // Opposite sides of the well rather than two fully random x positions
+      // — otherwise they'd occasionally land on top of each other.
       for (let i = 0; i < 2; i++) {
         const p = makePiece(rand(0.8, 1.6));
-        p.position.set(rand(-15, 15), h + rand(-2.5, 3.5), rand(-10, 4));
+        const side = i === 0 ? -1 : 1;
+        p.position.set(
+          side * rand(6, 15),
+          h + rand(-2.5, 3.5),
+          rand(-10, 4),
+        );
         const data: PieceUserData = {
           baseY: p.position.y,
           rev: clamp(1 - p.position.y / TOP, 0, 0.9),
@@ -253,11 +260,25 @@ export class TetrisWorld {
       this.placeCube(this.slots[this.nextSlot++]); // base layer pre-built
 
     // scattered settled pieces on the floor around the pyramid
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 22; i++) {
       const p = makePiece(rand(1.1, 1.9));
       const ang = rand(0, Math.PI * 2);
       const r = rand(16, 42);
       p.position.set(Math.cos(ang) * r, rand(0.6, 1.4), Math.sin(ang) * r);
+      p.rotation.set(
+        0,
+        rand(0, Math.PI * 2),
+        Math.random() < 0.3 ? Math.PI / 2 : 0,
+      );
+      world.add(p);
+    }
+
+    // a few more out toward the walls, reading as distant background clutter
+    for (let i = 0; i < 12; i++) {
+      const p = makePiece(rand(0.8, 1.4));
+      const ang = rand(0, Math.PI * 2);
+      const r = rand(50, 78);
+      p.position.set(Math.cos(ang) * r, rand(0.5, 1.2), Math.sin(ang) * r);
       p.rotation.set(
         0,
         rand(0, Math.PI * 2),
@@ -284,7 +305,7 @@ export class TetrisWorld {
       m.position.set(x - 1, y + 0.5, 0);
       holo.add(m);
     });
-    holo.scale.setScalar(2.4);
+    holo.scale.setScalar(1.5);
     holo.position.set(-26, 8, -20);
     scene.add(holo);
     this.holo = holo;
