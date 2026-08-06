@@ -1,5 +1,5 @@
 const HOVER_SELECTOR = "a, button, .work-row";
-const LERP = 0.05;
+const LERP = 0.08;
 
 /**
  * Custom cursor dot: position trails the pointer via a per-frame lerp, and

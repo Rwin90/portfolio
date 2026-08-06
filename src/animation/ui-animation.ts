@@ -6,6 +6,14 @@ gsap.registerPlugin(ScrollTrigger);
 
 export class UIAnimations {
   constructor() {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      // Everything below [data-reveal]'s hidden-until-animated CSS baseline
+      // is otherwise visible by default — just snap those to rest and skip
+      // every scroll-triggered tween and loop entirely.
+      gsap.set("[data-reveal]", { opacity: 1, y: 0 });
+      return;
+    }
+
     this.animateHero();
 
     this.animateExperience();

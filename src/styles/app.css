@@ -38,6 +38,42 @@ a {
   background: rgba(125, 151, 255, 0.35);
 }
 
+/* The custom cursor hides the native one everywhere, so keyboard focus
+   needs its own unambiguous indicator. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: fixed;
+  top: -100%;
+  left: 12px;
+  z-index: 20000;
+  background: var(--accent);
+  color: #04060c;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  padding: 10px 16px;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus-visible {
+  top: 12px;
+  outline-color: #04060c;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
 @keyframes scrollPulse {
   0%,
   100% {
@@ -65,8 +101,8 @@ a {
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   background: rgba(4, 6, 12, 0.38);
 }
 
@@ -336,6 +372,35 @@ button,
   backdrop-filter: blur(4px);
   overflow: hidden;
 }
+/* Both the visible front image and the hidden back image share this box
+   exactly — position/size/object-fit must match, or PortraitPixelFlip
+   samples the two at different scales and the flipped tiles look wrong. */
+.portrait img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 120%;
+  object-fit: cover;
+}
+
+/* The real photo, sampled by PortraitPixelFlip as the "back" of the flip —
+   never shown directly, just loaded and read from via canvas. */
+.portrait__back-img {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Painted by PortraitPixelFlip (src/interactions/portrait-pixel-flip.ts) —
+   transparent everywhere except the handful of tiles currently mid-flip
+   under the cursor, so the plain <img> shows through the rest of the time. */
+.portrait-flip-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 120%;
+  z-index: 1;
+  pointer-events: none;
+}
 
 .portrait__frame {
   position: absolute;
@@ -346,20 +411,6 @@ button,
     inset 0 0 24px rgba(125, 151, 255, 0.06);
   pointer-events: none;
   z-index: 2;
-}
-
-.portrait__placeholder {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 20px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  color: var(--muted-dim);
 }
 
 .portrait__grid {
@@ -386,24 +437,6 @@ button,
     transparent 70%,
     rgba(125, 151, 255, 0.1)
   );
-}
-
-.portrait__corner {
-  position: absolute;
-  width: 28px;
-  height: 28px;
-  background: rgba(125, 151, 255, 0.12);
-  border: 1px solid rgba(125, 151, 255, 0.4);
-}
-
-.portrait__corner--bl {
-  bottom: -14px;
-  left: -14px;
-}
-
-.portrait__corner--tr {
-  top: -14px;
-  right: -14px;
 }
 
 .about__copy {

@@ -13,17 +13,19 @@ export class ScrollController {
   velocity = 0;
 
   constructor() {
+    // Smooth/inertial scroll is itself a motion effect — honor the OS
+    // preference by making Lenis track the native scroll near-instantly
+    // instead of the usual heavy trailing.
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     this.lenis = new Lenis({
-      smoothWheel: true,
-      // Lower = heavier trailing, and lerp mode (not duration/easing) is what
-      // actually governs the feel here — Lenis ignores duration once lerp is
-      // set, so the two were never both in effect.
-      lerp: 0.07,
+      smoothWheel: !reduced,
+      lerp: reduced ? 1 : 0.07,
       wheelMultiplier: 1,
       // Nav links (#about, #work, #contact) get the same eased scroll instead
       // of an instant native jump — matters now that CSS scroll-behavior is
       // gone (it fought Lenis' own per-frame scrollTo calls).
-      anchors: true,
+      anchors: !reduced,
     });
 
     this.lenis.on("scroll", ({ scroll, limit, velocity }) => {
