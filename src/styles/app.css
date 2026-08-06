@@ -101,7 +101,7 @@ a {
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px) !important;
   -webkit-backdrop-filter: blur(3px);
   background: rgba(4, 6, 12, 0.38);
 }
@@ -379,7 +379,7 @@ button,
   position: absolute;
   inset: 0;
   width: 100%;
-  height: 120%;
+  height: 100%;
   object-fit: cover;
 }
 
@@ -388,18 +388,53 @@ button,
 .portrait__back-img {
   opacity: 0;
   pointer-events: none;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-/* Painted by PortraitPixelFlip (src/interactions/portrait-pixel-flip.ts) —
-   transparent everywhere except the handful of tiles currently mid-flip
-   under the cursor, so the plain <img> shows through the rest of the time. */
-.portrait-flip-canvas {
+/* Populated by PortraitPixelFlip (src/interactions/portrait-pixel-flip.ts)
+   with a small recycled pool of real DOM tiles — genuine CSS 3D (perspective
+   + rotateY), not a 2D squash illusion. Only tiles near the cursor ever
+   exist; everywhere else the plain <img> shows through untouched. */
+.portrait-flip-pool {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 120%;
   z-index: 1;
   pointer-events: none;
+  perspective: 700px;
+}
+
+.flip-tile {
+  position: absolute;
+}
+
+.flip-tile__inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  transition: transform 480ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.flip-tile.is-flipped .flip-tile__inner {
+  transform: rotateY(-180deg);
+}
+
+.flip-tile__face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  background-repeat: no-repeat;
+}
+
+.flip-tile__face--back {
+  /* Must pivot around the same left edge as .flip-tile__inner — a
+     mismatched origin here composes into a horizontal drift once flipped,
+     instead of the two rotations cancelling out cleanly. */
+  transform-origin: left center;
+  transform: rotateY(180deg);
 }
 
 .portrait__frame {
@@ -421,7 +456,7 @@ button,
   background-image:
     linear-gradient(rgba(4, 6, 12, 0.5) 1px, transparent 1px),
     linear-gradient(90deg, rgba(4, 6, 12, 0.5) 1px, transparent 1px);
-  background-size: 7px 7px;
+  background-size: 9px 9px;
   mix-blend-mode: overlay;
 }
 

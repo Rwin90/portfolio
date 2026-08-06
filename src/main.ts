@@ -31,11 +31,11 @@ const portraitFrontImg = portraitEl?.querySelector<HTMLImageElement>(
 const portraitBackImg = portraitEl?.querySelector<HTMLImageElement>(
   ".portrait__back-img",
 );
-const portraitCanvas = portraitEl?.querySelector<HTMLCanvasElement>(
-  ".portrait-flip-canvas",
+const portraitFlipPool = portraitEl?.querySelector<HTMLElement>(
+  ".portrait-flip-pool",
 );
-if (portraitEl && portraitFrontImg && portraitBackImg && portraitCanvas) {
-  new PortraitPixelFlip(portraitEl, portraitFrontImg, portraitBackImg, portraitCanvas);
+if (portraitEl && portraitFrontImg && portraitBackImg && portraitFlipPool) {
+  new PortraitPixelFlip(portraitEl, portraitFrontImg, portraitBackImg, portraitFlipPool);
 }
 
 // WebGL can fail to initialize (unsupported browser, exhausted contexts,
