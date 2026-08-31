@@ -15,17 +15,11 @@ export class UIAnimations {
     }
 
     this.animateHero();
-
     this.animateExperience();
-
     this.animateHeadlines();
-
     this.animateReveals();
   }
 
-  //
-  // HERO
-  //
   animateHero() {
     const tl = gsap.timeline({
       defaults: {
@@ -80,129 +74,82 @@ export class UIAnimations {
         "-=0.4",
       );
 
-    //
-    // FLOATING TITLE MOTION
-    //
     gsap.to(".hero__title", {
       y: 22,
       duration: 2,
       repeat: 2,
       yoyo: true,
-      gap: 2,
+      repeatDelay: 2,
       ease: "sine.inOut",
     });
 
-    //
-    // PARALLAX
-    //
     gsap.to(".hero__content", {
       yPercent: 18,
-
       ease: "none",
-
       scrollTrigger: {
         trigger: ".hero",
-
         start: "top top",
-
         end: "bottom top",
-
         scrub: true,
       },
     });
   }
 
-  //
-  // EXPERIENCE SECTION
-  //
   animateExperience() {
-    //
-    // LEFT SIDE
-    //
     gsap.from(".experience-left", {
       opacity: 0,
-
       x: -80,
-
       duration: 1.2,
-
       ease: "power3.out",
-
       scrollTrigger: {
         trigger: ".experience",
-
         start: "top 70%",
       },
     });
 
-    //
-    // TIMELINE LINE GROW
-    //
     gsap.from(".timeline-line", {
       scaleY: 0,
-
       transformOrigin: "top center",
-
       ease: "none",
-
       scrollTrigger: {
         trigger: ".timeline",
-
         start: "top 80%",
-
         end: "bottom 70%",
-
         scrub: true,
       },
     });
 
-    //
-    // ITEMS
-    //
     gsap.utils.toArray(".timeline-item").forEach((item: any) => {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: item,
-
           start: "top 82%",
         },
       });
 
       tl.from(item.querySelector(".timeline-dot"), {
         scale: 0,
-
         opacity: 0,
-
         duration: 0.5,
-
         ease: "back.out(2)",
       })
-
         .from(
           item.querySelector(".timeline-content"),
           {
             y: 60,
-
             opacity: 0,
-
             filter: "blur(10px)",
-
             duration: 1,
-
             ease: "power3.out",
           },
           "-=0.2",
         )
-
         .from(
           item.querySelectorAll(".tags span"),
           {
             opacity: 0,
-
             y: 20,
-
             stagger: 0.04,
-
             duration: 0.5,
           },
           "-=0.5",
@@ -210,13 +157,9 @@ export class UIAnimations {
     });
   }
 
-  //
-  // SECTION HEADLINES
-  //
   // Every `.section-heading` (about, skills, experience, work, testimonials,
   // contact) gets its own heavier lift-and-blur entrance, distinct from the
   // lighter fade the rest of its section gets from animateReveals() below.
-  //
   animateHeadlines() {
     gsap.utils.toArray<HTMLElement>(".section-heading").forEach((heading) => {
       gsap.from(heading, {
@@ -233,13 +176,9 @@ export class UIAnimations {
     });
   }
 
-  //
-  // GENERIC SCROLL REVEALS
-  //
   // Every [data-reveal] element that doesn't already get a bespoke timeline
   // above (about, skills, work rows, testimonials, contact) just fades and
   // lifts in once it enters the viewport.
-  //
   animateReveals() {
     gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((el) => {
       gsap.to(el, {

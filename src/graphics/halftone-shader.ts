@@ -246,19 +246,6 @@ interface HalftoneConfig {
   timeScale: number;
 }
 
-const WALL_CFG: HalftoneConfig = {
-  frag: HALFTONE_FRAG,
-  colors: [
-    0.067, 0.067, 0.067, 0.322, 0.322, 0.322, 0.831, 0.831, 0.831, 0.98, 0.98,
-    0.98,
-  ],
-  shape: [1.26, 0.35, 0.28, 0.0],
-  surface: [1.82, 1.0, 0.0, 1.0],
-  finish: [0.0, 0.0, 0.0, 0.04],
-  transform: [1.0, 0.0, 0.0, 0.0],
-  timeScale: 0.57,
-};
-
 // floor: "Halftone" pattern — navy gradient #020817, #071633, #10295C, #1E4A8F
 const FLOOR_CFG: HalftoneConfig = {
   frag: PATTERN_FRAG,
@@ -279,10 +266,10 @@ export interface HalftoneRenderer {
 }
 
 // Creates an offscreen shader renderer. Returns null if WebGL unavailable.
-export function createHalftone(
+function createHalftone(
   width: number,
   height: number,
-  cfg: HalftoneConfig = WALL_CFG,
+  cfg: HalftoneConfig,
 ): HalftoneRenderer | null {
   const canvas = document.createElement("canvas");
   canvas.width = width;
