@@ -9,4 +9,5 @@ export default {
       strict: false,
     },
   },
+    base: "/",
 };
